@@ -1,0 +1,54 @@
+.hero {
+  text-align: center;
+  padding: 48px 0 28px;
+}
+
+.logo {
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 16px;
+  border-radius: 28px;
+  background: linear-gradient(155deg, var(--coral-tint), var(--surface-soft));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44px;
+}
+
+.brand {
+  font-size: 30px;
+  font-weight: 900;
+  margin: 0;
+  color: var(--coral-ink);
+}
+
+.tagline {
+  margin: 10px 0 0;
+  color: var(--ink-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.points {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.points li {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 13px 14px;
+  font-size: 14px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 28px;
+}
