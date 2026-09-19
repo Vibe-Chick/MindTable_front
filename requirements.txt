@@ -24,6 +24,23 @@ globals==17.12.0
 @types/react==19.3.0
 @types/react-dom==19.3.0
 
+# --- 외부 서비스 (런타임에 스크립트로 로드, npm 설치 불필요) ---
+# Google Identity Services   https://accounts.google.com/gsi/client   (Google 계정 로그인)
+
 # --- 환경 변수 (.env) ---
-# VITE_API_BASE_URL=/api      백엔드 API 주소
-# VITE_USE_MOCK=true          true면 백엔드 없이 mock 데이터로 동작
+# VITE_API_BASE_URL=/api          백엔드 API 주소
+# VITE_USE_MOCK=true              true면 백엔드 없이 mock 데이터로 동작
+# VITE_GOOGLE_CLIENT_ID=          Google Cloud 콘솔 OAuth 클라이언트 ID (mock=false일 때 필요)
+
+# --- 백엔드 연동 시 필요한 API (VITE_USE_MOCK=false) ---
+# POST  /auth/google              { credential }  → { token, user }
+# POST  /auth/school/code         { userId, univEmail }  → { school }
+# POST  /auth/school/verify       { userId, univEmail, code, school, major }  → user
+# PATCH /users/:id                { ...patch }  → user
+# POST  /profile/analyze          { answers }  → { bigFive, interests, summary, valid }
+# POST  /users/:id/profile        profile
+# POST  /match/request            { userId }  → { matchId }
+# GET   /match/:id                → { status, result }
+# GET   /users/:id/matches        → history[]
+# GET   /match/:id/restaurants    → restaurants[]
+# POST  /match/:id/reserve        { restaurantId }
