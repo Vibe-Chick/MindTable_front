@@ -15,28 +15,21 @@ const TRAITS = [
 
 const DEFAULT_BIGFIVE = { openness: 3, conscientiousness: 3, extraversion: 3, agreeableness: 3, neuroticism: 3 }
 
-// 숫자 대신 말로: 현재 수준 + 처음 대비 변화
-function level(v) {
-  if (v >= 4) return '높은 편'
-  if (v >= 2.5) return '보통'
-  return '낮은 편'
-}
-
 function changeText(d) {
-  if (d >= 0.5) return { text: '많이 올랐어요', tone: 'up' }
-  if (d > 0) return { text: '조금 올랐어요', tone: 'up' }
-  if (d <= -0.5) return { text: '많이 내려갔어요', tone: 'down' }
-  if (d < 0) return { text: '조금 내려갔어요', tone: 'down' }
-  return { text: '그대로예요', tone: 'zero' }
+  const v = Math.abs(d).toFixed(1)
+  if (d > 0) return { text: `▲ ${v} 올랐어요`, tone: 'up' }
+  if (d < 0) return { text: `▼ ${v} 낮아졌어요`, tone: 'down' }
+  return { text: '— 그대로', tone: 'zero' }
 }
 
-function diversityText(p) {
-  if (p >= 0.6) return '다른 배경을 선호'
-  if (p <= 0.4) return '비슷한 사람을 선호'
-  return '둘 다 괜찮아요'
+function diversityChange(series) {
+  const d = series[series.length - 1] - series[0]
+  if (d > 0.05) return { text: '▲ 다른 배경 쪽으로', tone: 'up' }
+  if (d < -0.05) return { text: '▼ 비슷한 사람 쪽으로', tone: 'down' }
+  return { text: '— 그대로', tone: 'zero' }
 }
 
-// 마이페이지 "통계 · 기록" 탭: 내 프로필(말로 표현) + 테이블 리뷰 기록
+// 마이페이지 "통계 · 기록" 탭: 통계 3칸 + 내 프로필(추이선 + 숫자) + 테이블 리뷰 기록
 function ProfileHistory({ userId }) {
   const navigate = useNavigate()
   const [reviews, setReviews] = useState(null)
@@ -49,87 +42,138 @@ function ProfileHistory({ userId }) {
 
   const initial = loadJson('mt_profile')?.bigFive ?? DEFAULT_BIGFIVE
   const list = reviews ?? []
-  // 현재 프로필 = 첫 테스트 + 리뷰 델타 누적
-  const current = Object.fromEntries(
-    TRAITS.map(([k]) => [k, Math.min(5, Math.max(1, initial[k] + list.reduce((s, r) => s + (r.deltas?.[k] ?? 0), 0)))]),
+  const asc = [...list].sort((a, b) => new Date(a.date) - new Date(b.date))
+
+  // 축별 추이: 첫 테스트 → 리뷰마다 델타 누적
+  const series = Object.fromEntries(
+    TRAITS.map(([k]) => {
+      const pts = [initial[k]]
+      asc.forEach((r) => pts.push(Math.min(5, Math.max(1, pts[pts.length - 1] + (r.deltas?.[k] ?? 0)))))
+      return [k, pts]
+    }),
   )
-  const diversity = list[0]?.diversityPref ?? 0.5
+  const diversitySeries = [0.5, ...asc.map((r) => r.diversityPref ?? 0.5)]
   const people = matches.reduce((s, m) => s + (m.groupSize - 1), 0)
+
+  const rows = [
+    ...TRAITS.map(([k, label]) => {
+      const s = series[k]
+      return { key: k, label, series: s, min: 1, max: 5, value: s[s.length - 1].toFixed(1), change: changeText(s[s.length - 1] - s[0]) }
+    }),
+    { key: 'diversity', label: '다양성', series: diversitySeries, min: 0, max: 1, value: `${Math.round(diversitySeries[diversitySeries.length - 1] * 100)}`, unit: '%', change: diversityChange(diversitySeries) },
+  ]
 
   return (
     <>
-      <p className={styles.summary}>
-        {matches.length > 0 ? `지금까지 ${matches.length}번 만나서 ${people}명과 밥을 먹었어요` : '아직 매칭 기록이 없어요'}
-      </p>
-
-      <h3 className={styles.section}>
-        내 프로필 <small>{list.length ? '첫 테스트 → 지금' : '첫 테스트 결과'}</small>
-      </h3>
-      <div className={styles.grid}>
-        {TRAITS.map(([k, label]) => {
-          const c = changeText(current[k] - initial[k])
-          return (
-            <div key={k} className={styles.cell}>
-              <div className={styles.cellTop}>
-                <span>{label}</span>
-                <b>{level(current[k])}</b>
-              </div>
-              {list.length > 0 && <div className={styles[`change_${c.tone}`]}>{c.tone === 'up' ? '▲' : c.tone === 'down' ? '▼' : '—'} {c.text}</div>}
-            </div>
-          )
-        })}
-        <div className={styles.cell}>
-          <div className={styles.cellTop}>
-            <span>다양성</span>
-            <b>{diversityText(diversity)}</b>
-          </div>
-          {list.length > 0 && <div className={styles.change_zero}>최근 리뷰 기준</div>}
+      <div className={styles.stats}>
+        <div>
+          <b className={styles.statNum}>{matches.length}</b>
+          <span>총 매칭</span>
+        </div>
+        <div>
+          <b className={styles.statNum}>{people}</b>
+          <span>만난 사람</span>
+        </div>
+        <div>
+          <b className={styles.statNum}>{list.length}</b>
+          <span>리뷰</span>
         </div>
       </div>
 
       <h3 className={styles.section}>
-        테이블 리뷰 <small>{list.length ? `${list.length}회` : ''}</small>
+        내 프로필 <small>{list.length ? '첫 테스트 → 지금' : '첫 테스트 결과'}</small>
       </h3>
-      {reviews === null && <p className={styles.empty}>불러오는 중…</p>}
-      {reviews !== null && list.length === 0 && (
-        <p className={styles.empty}>
-          식사 후 테이블 리뷰를 남기면 프로필이 조금씩 나에게 맞춰져요.
-          <br />
-          첫 매칭을 신청해봐!
-        </p>
-      )}
-      {list.map((r) => {
-        // 크게 움직인 축 최대 2개만 태그로
-        const tags = Object.entries(r.deltas ?? {})
-          .filter(([, d]) => Math.abs(d) >= 0.2)
-          .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
-          .slice(0, 2)
-        return (
-          <button key={r.matchId} type="button" className={styles.review} onClick={() => navigate(`/review/${r.matchId}`)}>
-            <span className={styles.reviewIcon}>🍽️</span>
-            <span className={styles.reviewText}>
-              <b>{r.restaurant}</b>
-              <small>{formatDate(r.date)}</small>
-              <span className={styles.tags}>
-                {tags.map(([k, d]) => (
-                  <span key={k} className={d > 0 ? styles.tagUp : styles.tagDown}>
-                    {TRAITS.find(([key]) => key === k)?.[1]} {d > 0 ? '↑' : '↓'}
-                  </span>
-                ))}
-                {r.driftAlert && <span className={styles.tagEvent}>⚡ 큰 변화</span>}
-              </span>
+      <div className={styles.rows}>
+        {rows.map((r, i) => (
+          <div key={r.key} className={styles.row}>
+            <span className={styles.idx}>{String(i + 1).padStart(2, '0')}</span>
+            <span className={styles.name}>
+              <b>{r.label}</b>
+              {list.length > 0 && <small className={styles[`tone_${r.change.tone}`]}>{r.change.text}</small>}
             </span>
-            <span className={styles.arrow}>›</span>
-          </button>
-        )
-      })}
+            <Sparkline series={r.series} min={r.min} max={r.max} tone={list.length ? r.change.tone : 'zero'} />
+            <span className={styles.num}>
+              {r.value}
+              {r.unit && <i>{r.unit}</i>}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div className={styles.reviewsWrap}>
+        <h3 className={styles.section}>
+          리뷰 기록 <small>{list.length ? `${list.length}회` : ''}</small>
+        </h3>
+        {reviews === null && <p className={styles.empty}>불러오는 중…</p>}
+        {reviews !== null && list.length === 0 && (
+          <p className={styles.empty}>
+            식사 후 테이블 리뷰를 남기면 프로필이 조금씩 나에게 맞춰져요.
+            <br />
+            첫 매칭을 신청해봐!
+          </p>
+        )}
+        {list.map((r) => {
+          const tags = Object.entries(r.deltas ?? {})
+            .filter(([, d]) => Math.abs(d) >= 0.2)
+            .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+            .slice(0, 2)
+          return (
+            <button key={r.matchId} type="button" className={styles.review} onClick={() => navigate(`/review/${r.matchId}`)}>
+              <span className={styles.reviewIcon}>🍽️</span>
+              <span className={styles.reviewText}>
+                <span className={styles.reviewHead}>
+                  <b>{r.restaurant}</b>
+                  {r.driftAlert && <span className={styles.tagEvent}>프로필 이동</span>}
+                </span>
+                <small>
+                  {formatDate(r.date)}
+                  {r.members ? ` · ${r.members}` : ''}
+                </small>
+                <span className={styles.tags}>
+                  {tags.map(([k, d]) => (
+                    <span key={k} className={d > 0 ? styles.tagUp : styles.tagDown}>
+                      {TRAITS.find(([key]) => key === k)?.[1]} {d > 0 ? '↑' : '↓'}
+                    </span>
+                  ))}
+                </span>
+              </span>
+              <span className={styles.arrow}>›</span>
+            </button>
+          )
+        })}
+      </div>
     </>
+  )
+}
+
+// 추이선: 방향별 색(오름 초록 / 내림 코랄 / 그대로 회색) + 아래쪽 그라데이션 채움
+function Sparkline({ series, min, max, tone }) {
+  const W = 88
+  const H = 30
+  const color = tone === 'down' ? '#e5533c' : tone === 'zero' ? '#9c9c9c' : '#2f9e6b'
+  const pts = series.length === 1 ? [series[0], series[0]] : series
+  const x = (i) => 4 + (i / (pts.length - 1)) * (W - 8)
+  const y = (v) => 4 + (1 - (v - min) / (max - min)) * (H - 8)
+  const line = pts.map((v, i) => `${x(i)},${y(v)}`).join(' ')
+  const id = `sp-${tone}-${Math.round(y(pts[pts.length - 1]))}-${pts.length}`
+  return (
+    <svg className={styles.spark} viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+      <defs>
+        <linearGradient id={id} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor={color} stopOpacity="0.25" />
+          <stop offset="1" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polygon fill={`url(#${id})`} points={`4,${H} ${line} ${x(pts.length - 1)},${H}`} />
+      <polyline fill="none" stroke={color} strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" points={line} />
+      <circle cx={x(pts.length - 1)} cy={y(pts[pts.length - 1])} r="3" fill={color} />
+    </svg>
   )
 }
 
 function formatDate(iso) {
   const d = new Date(iso)
-  return `${d.getMonth() + 1}/${d.getDate()}`
+  return `${d.getMonth() + 1}/${String(d.getDate()).padStart(2, '0')}`
 }
 
 export default ProfileHistory
