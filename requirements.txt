@@ -36,8 +36,9 @@ globals==17.12.0
 
 # --- 백엔드 (MindTable_back, Django, http://127.0.0.1:8000 — Vite 프록시로 /api 전달) ---
 # POST  /auth/google/             { credential }  → { access, refresh, user{id,email,name,picture,google_id}, created }   [연동됨]
-# POST  /auth/school/code         { userId, univEmail }  → { school }
-# POST  /auth/school/verify       { userId, univEmail, code, school, major }  → user
+# POST  /auth/school/send-code/   { school_email }  → { message }                        [토큰 필요] 인증 메일 발송
+# POST  /auth/school/verify-code/ { school_email, code, school_name, major }  → { school_verification: { school_email, school_name, verified_at } }   [토큰 필요]
+#   ※ 프론트 연결 완료. 백엔드 뷰가 GitHub에 올라오면 VITE_LIVE_APIS=auth/google,auth/school 로 켜기
 # PATCH /users/:id                { ...patch }  → user
 # POST  /profile/check-answer     { questionId, trait, question, answer }  → { ok, reason }
 # POST  /profile/analyze          { answers }  → { bigFive, interests, summary, valid, insufficient[] }

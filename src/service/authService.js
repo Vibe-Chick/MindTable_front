@@ -63,6 +63,7 @@ export async function loginWithGoogle() {
 function normalizeBackendUser(u) {
   const prev = loadJson(USER_KEY)
   const carry = prev && prev.email === u.email ? prev : {}
+  const sv = u.school_verification // 백엔드 SchoolVerification (있으면 인증된 것)
   return newUser({
     ...carry,
     id: u.id,
@@ -70,11 +71,11 @@ function normalizeBackendUser(u) {
     name: u.name || carry.name || u.email.split('@')[0],
     picture: u.picture ?? null,
     googleId: u.google_id ?? null,
-    schoolVerified: u.school_verified ?? u.schoolVerified ?? carry.schoolVerified ?? false,
+    schoolVerified: u.school_verified ?? (sv ? true : undefined) ?? carry.schoolVerified ?? false,
     hasProfile: u.has_profile ?? u.hasProfile ?? carry.hasProfile ?? false,
-    school: u.school ?? carry.school ?? null,
+    school: sv?.school_name || u.school || carry.school || null,
     major: u.major ?? carry.major ?? null,
-    univEmail: u.univ_email ?? u.univEmail ?? carry.univEmail ?? null,
+    univEmail: sv?.school_email ?? u.univ_email ?? carry.univEmail ?? null,
   })
 }
 
@@ -109,30 +110,45 @@ function loadGoogleSdk() {
 }
 
 // ---------- 학교 인증 (선택) — 대학 이메일 코드 인증 ----------
+// 백엔드(MindTable_back accounts):
+//   POST /api/auth/school/send-code/    { school_email }            토큰 필요 → 인증 메일 발송
+//   POST /api/auth/school/verify-code/  { school_email, code, school_name }  토큰 필요 → SchoolVerification 생성
+// 사용자 식별은 Authorization 헤더의 JWT로 하므로 userId 는 보내지 않는다.
 export async function requestSchoolCode(userId, univEmail) {
   if (!isUniversityEmail(univEmail)) {
     throw new Error('대학 이메일(.ac.kr / .edu)만 인증할 수 있어')
   }
-  if (USE_MOCK) {
+  if (!isLive('auth/school')) {
     await sleep(500)
     if (getMockUsers().some((u) => u.univEmail === univEmail && u.id !== userId)) {
       throw new Error('이미 다른 계정에서 인증된 학교 이메일이에요')
     }
     return { school: guessSchoolFromEmail(univEmail) }
   }
-  const { data } = await api.post('/auth/school/code', { userId, univEmail })
-  return data
+  const { data } = await api.post('/auth/school/send-code/', { school_email: univEmail })
+  // 백엔드가 학교명을 주면 쓰고, 없으면 도메인으로 추정
+  return { school: data?.school_name ?? guessSchoolFromEmail(univEmail), message: data?.message }
 }
 
 export async function verifySchoolCode(userId, { univEmail, code, school, major }) {
-  if (USE_MOCK) {
+  if (!isLive('auth/school')) {
     await sleep(500)
     if (code !== MOCK_CODE) throw new Error('인증 코드가 일치하지 않아요')
     const user = getMockUsers().find((u) => u.id === userId)
     return saveMockUser({ ...user, schoolVerified: true, univEmail, school, major })
   }
-  const { data } = await api.post('/auth/school/verify', { userId, univEmail, code, school, major })
-  return data
+  const { data } = await api.post('/auth/school/verify-code/', { school_email: univEmail, code, school_name: school, major })
+  // 응답 형식이 확정되기 전이라 있는 필드만 쓰고, 나머지는 입력값으로 채운다
+  const v = data?.school_verification ?? data ?? {}
+  const current = loadJson(USER_KEY) ?? {}
+  return {
+    ...current,
+    schoolVerified: true,
+    univEmail: v.school_email ?? univEmail,
+    school: v.school_name || school,
+    major: v.major ?? major,
+    schoolVerifiedAt: v.verified_at ?? new Date().toISOString(),
+  }
 }
 
 // ---------- 내 정보 수정 ----------
