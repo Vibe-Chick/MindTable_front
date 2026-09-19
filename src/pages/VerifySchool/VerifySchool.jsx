@@ -60,7 +60,7 @@ function VerifySchool() {
 
       {step === 1 && (
         <>
-          <Heading sub="매칭은 인증된 대학(원)생끼리만 이어져요. 학교 이메일로 확인할게">{'학교 인증하고\n매칭 받기'}</Heading>
+          <Heading sub="학교 이메일로 확인할게">{'학교 인증하고\n매칭 받기'}</Heading>
           <div className={styles.who}>
             {user.email} · {user.name}
           </div>
