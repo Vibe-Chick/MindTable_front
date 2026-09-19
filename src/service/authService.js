@@ -40,16 +40,43 @@ function newUser(fields) {
 //   { access, refresh, user: { id, email, name, picture, google_id }, created }
 // 프론트 형식으로 매핑:
 //   { token: access, refresh, user: { ...프론트 user 필드 } }
+export const GOOGLE_LIVE = isLive('auth/google')
+
+// mock 로그인 (백엔드 없이)
 export async function loginWithGoogle() {
-  if (!isLive('auth/google')) {
-    await sleep(700)
-    let user = getMockUsers().find((u) => u.provider === 'google')
-    if (!user) {
-      user = saveMockUser(newUser({ email: 'jaebin@gmail.com', name: '이재빈' }))
-    }
-    return { token: `mock-${user.id}`, user }
+  await sleep(700)
+  let user = getMockUsers().find((u) => u.provider === 'google')
+  if (!user) {
+    user = saveMockUser(newUser({ email: 'jaebin@gmail.com', name: '이재빈' }))
   }
-  const credential = await getGoogleCredential()
+  return { token: `mock-${user.id}`, user }
+}
+
+// Google 공식 버튼을 el 안에 렌더링. 사용자가 누르면 팝업 → credential → onCredential(credential)
+// One Tap(prompt)은 브라우저 상태에 따라 안 뜨는 경우가 많아 버튼 방식으로 고정한다.
+export async function renderGoogleButton(el, onCredential) {
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+  if (!clientId) throw new Error('Google 클라이언트 ID(VITE_GOOGLE_CLIENT_ID)가 설정되지 않았어요')
+  await loadGoogleSdk()
+  window.google.accounts.id.initialize({
+    client_id: clientId,
+    callback: (res) => res.credential && onCredential(res.credential),
+    ux_mode: 'popup',
+  })
+  window.google.accounts.id.renderButton(el, {
+    type: 'standard',
+    theme: 'outline',
+    size: 'large',
+    text: 'continue_with',
+    shape: 'pill',
+    logo_alignment: 'left',
+    width: Math.min(el.clientWidth || 360, 400),
+    locale: 'ko',
+  })
+}
+
+// Google credential(ID 토큰) → 백엔드 → 우리 서비스 토큰
+export async function exchangeGoogleCredential(credential) {
   const { data } = await api.post('/auth/google/', { credential })
   return {
     token: data.access,
@@ -77,24 +104,6 @@ function normalizeBackendUser(u) {
     major: u.major ?? carry.major ?? null,
     univEmail: sv?.school_email ?? u.univ_email ?? carry.univEmail ?? null,
   })
-}
-
-function getGoogleCredential() {
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
-  if (!clientId) throw new Error('Google 클라이언트 ID(VITE_GOOGLE_CLIENT_ID)가 설정되지 않았어요')
-
-  return loadGoogleSdk().then(
-    () =>
-      new Promise((resolve, reject) => {
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: (res) => (res.credential ? resolve(res.credential) : reject(new Error('Google 로그인이 취소됐어요'))),
-        })
-        window.google.accounts.id.prompt((n) => {
-          if (n.isNotDisplayed() || n.isSkippedMoment()) reject(new Error('Google 로그인 창을 열 수 없어요. 팝업 차단을 확인해줘'))
-        })
-      }),
-  )
 }
 
 function loadGoogleSdk() {
