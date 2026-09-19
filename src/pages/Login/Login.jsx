@@ -1,84 +1,76 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout/Layout'
-import { Button, Field, Heading, Input, Notice } from '../../components/ui/ui'
-import { login as loginApi, loginWithKakao } from '../../service/authService'
+import { Heading, Notice } from '../../components/ui/ui'
+import { loginWithGoogle } from '../../service/authService'
 import { useAuth } from '../../store/AuthContext'
-import { nextRouteFor } from '../../utils'
+import { FREE_FEATURES, VERIFIED_ONLY_FEATURES, nextRouteFor } from '../../utils'
 import styles from './Login.module.css'
 
+// 로그인 수단은 Google 계정 하나. 가입 절차 없이 첫 로그인 시 계정이 생성된다.
 function Login() {
   const navigate = useNavigate()
-  const { login } = useAuth()
-  const [form, setForm] = useState({ email: '', password: '' })
+  const { user, isLoggedIn, login } = useAuth()
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState('') // '' | 'email' | 'kakao'
+  const [loading, setLoading] = useState(false)
 
-  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+  if (isLoggedIn) return <Navigate to={nextRouteFor(user)} replace />
 
-  // 로그인 성공 후 학교 인증 → 성향 테스트 → 메인 순으로 분기
-  const finish = (data) => {
-    login(data)
-    navigate(nextRouteFor(data.user), { replace: true })
-  }
-
-  const onSubmit = async (e) => {
-    e.preventDefault()
+  const onGoogle = async () => {
     setError('')
-    setLoading('email')
+    setLoading(true)
     try {
-      finish(await loginApi(form))
+      const data = await loginWithGoogle()
+      login(data)
+      navigate(nextRouteFor(data.user), { replace: true })
     } catch (err) {
       setError(err.message)
-    } finally {
-      setLoading('')
-    }
-  }
-
-  const onKakao = async () => {
-    setError('')
-    setLoading('kakao')
-    try {
-      finish(await loginWithKakao())
-    } catch (err) {
-      setError(err.message)
-      setLoading('')
+      setLoading(false)
     }
   }
 
   return (
     <Layout showBack>
-      <Heading sub="카카오 또는 이메일로 로그인해줘">다시 만나서 반가워요</Heading>
+      <Heading sub="별도 회원가입 없이 Google 계정으로 바로 시작해요">{'Google 계정으로\n시작하기'}</Heading>
 
       {error && <Notice tone="error">{error}</Notice>}
 
-      <button type="button" className={styles.kakao} onClick={onKakao} disabled={!!loading}>
-        <span className={styles.kakaoIcon}>💬</span>
-        {loading === 'kakao' ? '카카오로 이동 중…' : '카카오로 시작하기'}
+      <button type="button" className={styles.google} onClick={onGoogle} disabled={loading}>
+        <GoogleIcon />
+        {loading ? 'Google 계정 확인 중…' : 'Google로 계속하기'}
       </button>
 
-      <div className={styles.divider}>
-        <span>또는 이메일로</span>
-      </div>
-
-      <form onSubmit={onSubmit} className={styles.form}>
-        <Field label="이메일">
-          <Input name="email" type="email" placeholder="you@example.com" value={form.email} onChange={onChange} required />
-        </Field>
-        <Field label="비밀번호">
-          <Input name="password" type="password" placeholder="비밀번호" value={form.password} onChange={onChange} required />
-        </Field>
-        <Button type="submit" disabled={!!loading}>
-          {loading === 'email' ? '확인 중…' : '이메일로 로그인'}
-        </Button>
-      </form>
-
-      <div className={styles.links}>
-        <Link to="/find-password">비밀번호를 잊었어요</Link>
-        <span>·</span>
-        <Link to="/signup">이메일로 회원가입</Link>
+      <div className={styles.info}>
+        <div className={styles.infoBlock}>
+          <div className={styles.infoTitle}>로그인만 하면</div>
+          <ul>
+            {FREE_FEATURES.map((f) => (
+              <li key={f}>✓ {f}</li>
+            ))}
+          </ul>
+        </div>
+        <div className={styles.infoBlock}>
+          <div className={styles.infoTitle}>🎓 학교 인증까지 하면</div>
+          <ul>
+            {VERIFIED_ONLY_FEATURES.map((f) => (
+              <li key={f}>✓ {f}</li>
+            ))}
+          </ul>
+          <p className={styles.infoNote}>학교 인증은 로그인 후 언제든 할 수 있어요</p>
+        </div>
       </div>
     </Layout>
+  )
+}
+
+function GoogleIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.5 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.8 6.1C12.3 13.6 17.7 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17.5z" />
+      <path fill="#FBBC05" d="M10.4 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6l-7.8-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-6.1z" />
+      <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.7-4.1-13.6-9.9l-7.8 6.1C6.5 42.6 14.6 48 24 48z" />
+    </svg>
   )
 }
 

@@ -23,7 +23,7 @@ function Landing() {
       </div>
 
       <ul className={styles.points}>
-        <li>🎓 대학 이메일 인증으로 대학(원)생만 모여요</li>
+        <li>🎓 학교 인증하면 다른 대학 학생들과 매칭돼요</li>
         <li>💬 AI가 성향을 분석하고 프로필을 만들어요</li>
         <li>🎓 비슷하지만 낯선, 딱 좋은 조합을 찾아요</li>
         <li>🍽️ 캠퍼스 근처 제휴 식당까지 추천해요</li>
@@ -31,10 +31,7 @@ function Landing() {
 
       <div className={styles.actions}>
         <Link to="/login">
-          <Button>카카오 · 이메일로 시작하기</Button>
-        </Link>
-        <Link to="/signup">
-          <Button variant="secondary">계정이 없어요, 회원가입</Button>
+          <Button>Google 계정으로 시작하기</Button>
         </Link>
       </div>
     </Layout>
