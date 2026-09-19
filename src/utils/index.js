@@ -48,10 +48,10 @@ export function guessSchoolFromEmail(email) {
   return hit ? SCHOOL_DOMAINS[hit] : null
 }
 
-// 로그인 후 다음에 가야 할 화면. 학교 인증은 선택이라 여기서 강제하지 않는다.
+// 로그인 후 다음에 가야 할 화면. 항상 메인(/home)으로 보내고,
+// 성향 테스트·학교 인증은 메인의 카드에서 사용자가 직접 시작한다.
 export function nextRouteFor(user) {
   if (!user) return '/login'
-  if (!user.hasProfile) return '/test'
   return '/home'
 }
 
