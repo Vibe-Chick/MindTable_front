@@ -86,7 +86,6 @@ function VerifySchool() {
         <>
           {preset.sent && !error && <Notice tone="success">학교 계정으로 로그인해서 인증 코드를 바로 보냈어요</Notice>}
           <Heading sub={`${univEmail}로 보낸 6자리 코드를 입력해줘`}>인증 코드 확인</Heading>
-          <Notice>테스트 모드에서는 코드가 항상 123456이에요</Notice>
           <Field label="인증 코드">
             <Input inputMode="numeric" maxLength={6} value={code} onChange={(e) => setCode(e.target.value)} placeholder="123456" />
           </Field>
