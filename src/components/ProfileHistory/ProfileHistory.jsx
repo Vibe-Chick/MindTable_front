@@ -143,19 +143,21 @@ function ProfileHistory({ userId }) {
 }
 
 // 추이선: 방향별 색(오름 초록 / 내림 코랄 / 그대로 회색) + 아래쪽 그라데이션 채움
-// 숫자는 선 끝점 높이에 맞춰 바로 옆에 붙인다
+// 끝점에 값 레이블(코랄 알약)을 붙여 차트 데이터 레이블처럼 보이게 한다
 function Sparkline({ series, min, max, tone, value, unit }) {
-  const W = 88
-  const H = 30
+  const W = 150
+  const H = 34
+  const LABEL_W = unit ? 40 : 34
+  const PLOT_W = W - LABEL_W - 6 // 레이블 자리를 비워둔 선 영역
   const color = tone === 'down' ? '#e5533c' : tone === 'zero' ? '#9c9c9c' : '#2f9e6b'
   const pts = series.length === 1 ? [series[0], series[0]] : series
-  const x = (i) => 4 + (i / (pts.length - 1)) * (W - 8)
-  const y = (v) => 4 + (1 - (v - min) / (max - min)) * (H - 8)
+  const x = (i) => 4 + (i / (pts.length - 1)) * (PLOT_W - 8)
+  const y = (v) => 7 + (1 - (v - min) / (max - min)) * (H - 14)
   const line = pts.map((v, i) => `${x(i)},${y(v)}`).join(' ')
+  const lastX = x(pts.length - 1)
   const lastY = y(pts[pts.length - 1])
   const id = `sp-${tone}-${Math.round(lastY)}-${pts.length}`
   return (
-    <span className={styles.sparkWrap}>
     <svg className={styles.spark} viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
       <defs>
         <linearGradient id={id} x1="0" x2="0" y1="0" y2="1">
@@ -163,15 +165,18 @@ function Sparkline({ series, min, max, tone, value, unit }) {
           <stop offset="1" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <polygon fill={`url(#${id})`} points={`4,${H} ${line} ${x(pts.length - 1)},${H}`} />
+      <polygon fill={`url(#${id})`} points={`4,${H} ${line} ${lastX},${H}`} />
       <polyline fill="none" stroke={color} strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" points={line} />
-      <circle cx={x(pts.length - 1)} cy={lastY} r="3" fill={color} />
+      <circle cx={lastX} cy={lastY} r="3.2" fill={color} stroke="#fff" strokeWidth="1.5" />
+      {/* 값 레이블: 끝점 오른쪽, 끝점 높이에 맞춤 */}
+      <g transform={`translate(${lastX + 6}, ${lastY})`}>
+        <rect x="0" y="-9" width={LABEL_W} height="18" rx="9" fill="#ff6b52" />
+        <text x={LABEL_W / 2} y="0" textAnchor="middle" dominantBaseline="central" className={styles.labelText}>
+          {value}
+          {unit}
+        </text>
+      </g>
     </svg>
-    <span className={styles.num} style={{ top: `${(lastY / H) * 100}%` }}>
-      {value}
-      {unit && <i>{unit}</i>}
-    </span>
-    </span>
   )
 }
 

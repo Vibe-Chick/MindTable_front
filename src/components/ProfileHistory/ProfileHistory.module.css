@@ -24,8 +24,7 @@
 }
 
 /* 통통한 코랄 숫자 + 광택 */
-.statNum,
-.num {
+.statNum {
   font-weight: 900;
   letter-spacing: -1px;
   line-height: 1;
@@ -43,20 +42,6 @@
   font-size: 26px;
 }
 
-.num {
-  position: absolute;
-  left: 94px;
-  transform: translateY(-50%);
-  font-size: 24px;
-  letter-spacing: -1px;
-  white-space: nowrap;
-}
-
-.num i {
-  font-style: normal;
-  font-size: 14px;
-  letter-spacing: 0;
-}
 
 /* ---------- 섹션 ---------- */
 .section {
@@ -82,7 +67,7 @@
 
 .row {
   display: grid;
-  grid-template-columns: 22px 1fr 152px;
+  grid-template-columns: 22px 1fr 150px;
   align-items: center;
   gap: 8px;
   padding: 12px 0;
@@ -124,18 +109,18 @@
   font-weight: 600;
 }
 
-.sparkWrap {
-  position: relative;
-  display: block;
-  width: 152px;
-  height: 30px;
-}
-
 .spark {
   display: block;
-  width: 88px;
-  height: 30px;
+  width: 150px;
+  height: 34px;
   overflow: visible;
+}
+
+.labelText {
+  font-size: 11px;
+  font-weight: 800;
+  fill: #fff;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- 리뷰 기록 ---------- */
