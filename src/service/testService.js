@@ -1,5 +1,5 @@
 import api, { USE_MOCK } from './api'
-import { sleep } from '../utils'
+import { sleep, saveJson } from '../utils'
 
 // 개방형 3문항 + 강제선택 1문항 (Big Five 기반 설문)
 export const QUESTIONS = [
@@ -126,6 +126,7 @@ export async function analyzeAnswers(answers) {
 export async function saveProfileVector(userId, profile) {
   if (USE_MOCK) {
     await sleep(300)
+    saveJson('mt_profile', profile) // 마이페이지 '첫 테스트 → 지금' 비교 기준
     return { ok: true }
   }
   const { data } = await api.post(`/users/${userId}/profile`, profile)

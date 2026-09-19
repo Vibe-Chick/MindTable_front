@@ -42,16 +42,17 @@ globals==17.12.0
 # POST  /profile/check-answer     { questionId, trait, question, answer }  → { ok, reason }
 # POST  /profile/analyze          { answers }  → { bigFive, interests, summary, valid, insufficient[] }
 # POST  /users/:id/profile        profile
-# POST  /match/request            { userId }  → { matchId }
-# GET   /match/:id                → { status, result }
+# POST  /match/request            { userId, slots: ['2026-09-21-lunch', ...] | ['now'] }  → { matchId }   (희망 시간대)
+# GET   /match/:id                → { status, result: { ..., mealAt } }   (mealAt: 확정된 식사 시각, 리뷰 창 계산용)
 # GET   /users/:id/matches        → history[]
 # POST  /match/:id/restaurants/preferences/  { location, customLocation, price, avoid }  → { submitted, total, common }
 # GET   /match/:id/restaurants/   ?location&price&avoid  → { source: 'partner'|'map', restaurants[] }   (제휴 없으면 지도 API fallback)
 # GET   /match/:id/vote/          → { votes: {userId: restaurantId}, confirmed: restaurantId|null }
 # POST  /match/:id/vote/          { restaurantId }  → 위와 동일 (과반이면 confirmed)
 # POST  /match/:id/reserve        { restaurantId }
-# GET   /match/:id/review/        → { submitted, result }                          (식사 후 리뷰 상태)
-# POST  /match/:id/review/        { answers }  → { deltas, before, after, diversityPref, summary, driftAlert }   (보정)
+# GET   /match/:id/review/        → { submitted, result }                          (테이블 리뷰 상태)
+# POST  /match/:id/review/        { answers }  → { deltas, before, after, diversityPref, summary, driftAlert }   (테이블 리뷰 → 프로필 반영)
+# GET   /users/:id/reviews/       → [{ matchId, date, restaurant, deltas, diversityPref, driftAlert }]   (마이페이지 리뷰 기록)
 # --- Web Push (백엔드: pywebpush + VAPID 키 필요) ---
 # POST   /push/subscribe/         PushSubscription.toJSON() = { endpoint, keys: { p256dh, auth } }  → 사용자·기기별 저장
 # DELETE /push/subscribe/         { endpoint }

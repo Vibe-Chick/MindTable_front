@@ -19,13 +19,41 @@ const MOCK_RESULT = {
   scores: { similarity: 0.78, diversity: 0.86 },
 }
 
-// 매칭 신청 (대기자 풀에 등록)
-export async function requestMatch(userId) {
+// ---------- 희망 시간대 ----------
+// "정해진 배치 시각" 트리거: 사용자는 이번 주 식사 가능한 시간대를 고르고,
+// 백엔드는 같은 시간대의 대기자끼리 묶는다. 'now'는 즉시 매칭.
+export const MEAL_SLOTS = [
+  { value: 'lunch', label: '점심', time: '12:00' },
+  { value: 'dinner', label: '저녁', time: '18:30' },
+]
+export const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
+
+// 오늘부터 7일간의 (날짜 × 점심/저녁) 후보. 이미 지난 시간대는 제외
+export function upcomingSlots(now = new Date()) {
+  const slots = []
+  for (let d = 0; d < 7; d += 1) {
+    const day = new Date(now)
+    day.setDate(now.getDate() + d)
+    MEAL_SLOTS.forEach((m) => {
+      const [h, min] = m.time.split(':').map(Number)
+      const at = new Date(day)
+      at.setHours(h, min, 0, 0)
+      if (at > now) slots.push({ id: `${at.toISOString().slice(0, 10)}-${m.value}`, at: at.toISOString(), meal: m.value, label: `${d === 0 ? '오늘' : d === 1 ? '내일' : `${at.getMonth() + 1}/${at.getDate()}(${DAY_LABELS[at.getDay()]})`} ${m.label}` })
+    })
+  }
+  return slots
+}
+
+let mockRequestedSlots = null
+
+// 매칭 신청 (대기자 풀에 등록) — slots: 희망 시간대 id 배열 또는 ['now']
+export async function requestMatch(userId, slots = ['now']) {
   if (USE_MOCK) {
     await sleep(400)
+    mockRequestedSlots = slots
     return { matchId: 'match-1', status: 'queued' }
   }
-  const { data } = await api.post('/match/request', { userId })
+  const { data } = await api.post('/match/request', { userId, slots })
   return data
 }
 
@@ -33,7 +61,10 @@ export async function requestMatch(userId) {
 export async function getMatchResult(matchId) {
   if (USE_MOCK) {
     await sleep(2500)
-    return { status: 'done', result: MOCK_RESULT }
+    // mock: 고른 시간대 중 첫 번째를 식사 시각으로 확정 (즉시 매칭이면 2시간 뒤)
+    const first = mockRequestedSlots?.find((s) => s !== 'now')
+    const mealAt = first ? upcomingSlots().find((s) => s.id === first)?.at : null
+    return { status: 'done', result: { ...MOCK_RESULT, mealAt: mealAt ?? new Date(Date.now() + 2 * 3600 * 1000).toISOString() } }
   }
   const { data } = await api.get(`/match/${matchId}`)
   return data

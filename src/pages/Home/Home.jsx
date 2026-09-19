@@ -3,6 +3,7 @@ import Layout from '../../components/Layout/Layout'
 import { Button, Card, Heading } from '../../components/ui/ui'
 import { useAuth } from '../../store/AuthContext'
 import { useMatch } from '../../store/MatchContext'
+import { reviewWindow } from '../../service/reviewService'
 import styles from './Home.module.css'
 
 // 메인 화면: 매칭 신청 진입점 + 최근 매칭 요약
@@ -69,9 +70,13 @@ function Home() {
               </span>
             ))}
           </div>
-          <Button variant="secondary" className={styles.reviewBtn} onClick={() => navigate(`/review/${match.id}`)}>
-            🍽️ 식사 후 리뷰 쓰기
-          </Button>
+          {reviewWindow(match.mealAt).notYet ? (
+            <p className={styles.nextMeal}>🍽️ 다음 식사 {formatMeal(match.mealAt)}</p>
+          ) : (
+            <Button variant="secondary" className={styles.reviewBtn} onClick={() => navigate(`/review/${match.id}`)}>
+              🍽️ 테이블 리뷰 남기기
+            </Button>
+          )}
         </Card>
       )}
 
@@ -83,6 +88,12 @@ function Home() {
       )}
     </Layout>
   )
+}
+
+function formatMeal(iso) {
+  const d = new Date(iso)
+  const day = ['일', '월', '화', '수', '목', '금', '토'][d.getDay()]
+  return `${d.getMonth() + 1}/${d.getDate()}(${day}) ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
 export default Home

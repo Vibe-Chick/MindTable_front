@@ -47,7 +47,7 @@ function Restaurants() {
         setStep('confirmed')
         notifyLocal({ type: 'place_confirmed', title: '📍 식사 장소가 확정됐어요', body: `${picked.name} · 도보 ${picked.walk} — 투표로 확정됐어요`, url: '/restaurants' })
         // 실서버: 식사 종료 2시간 후 백엔드가 발송. mock은 바로 띄워서 흐름 확인
-        notifyLocal({ type: 'review_request', title: '📝 오늘 식사 어땠어요?', body: '24시간 안에 리뷰를 남기면 프로필이 보정돼요', url: `/review/${match.id}` })
+        notifyLocal({ type: 'review_request', title: '📝 오늘의 테이블, 어땠어요?', body: '24시간 안에 테이블 리뷰를 남기면 프로필에 반영돼요', url: `/review/${match.id}` })
       }
     }
     check()

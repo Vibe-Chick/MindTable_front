@@ -11,7 +11,7 @@ import { loadJson, saveJson } from '../utils'
 export const PUSH_TYPES = [
   { key: 'match_done', label: '매칭 완료', desc: '그룹이 확정됐을 때' },
   { key: 'place_confirmed', label: '장소 확정', desc: '투표로 식당이 정해졌을 때' },
-  { key: 'review_request', label: '리뷰 요청', desc: '식사 2시간 후' },
+  { key: 'review_request', label: '테이블 리뷰 요청', desc: '식사 2시간 후' },
 ]
 
 const PREFS_KEY = 'mt_push_prefs'

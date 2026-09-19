@@ -3,7 +3,7 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import Layout from '../../components/Layout/Layout'
 import { Button, Heading, Notice, Textarea } from '../../components/ui/ui'
 import { checkAnswerLocally } from '../../service/testService'
-import { REVIEW_DEADLINE_HOURS, REVIEW_QUESTIONS, getReviewStatus, submitReview } from '../../service/reviewService'
+import { REVIEW_QUESTIONS, getReviewStatus, reviewWindow, submitReview } from '../../service/reviewService'
 import { useMatch } from '../../store/MatchContext'
 import styles from './Review.module.css'
 
@@ -15,7 +15,7 @@ const TRAIT_LABEL = {
   neuroticism: '신경성',
 }
 
-// 식사 후 리뷰 (보정 플로우): 식사 완료 → 리뷰 요청 → 4문항 답변 → LLM 델타 추출 → 프로필 보정 결과
+// 테이블 리뷰 (플로우차트의 '보정' 단계): 식사 완료 → 리뷰 요청 → 4문항 답변 → LLM 델타 추출 → 프로필 보정 결과
 function Review() {
   const navigate = useNavigate()
   const { matchId } = useParams()
@@ -32,7 +32,35 @@ function Review() {
   }, [matchId])
 
   if (!match || match.id !== matchId) return <Navigate to="/home" replace />
-  if (!status) return <Layout title="식사 후 리뷰" showBack />
+  if (!status) return <Layout title="테이블 리뷰" showBack />
+
+  const window = reviewWindow(match.mealAt)
+
+  // 아직 식사 전 → 리뷰 창이 안 열림
+  if (window.notYet && !status.submitted) {
+    return (
+      <Layout title="테이블 리뷰" showBack>
+        <div className={styles.center}>
+          <div className={styles.expired}>🍽️</div>
+          <Heading sub={`${formatMeal(match.mealAt)} 식사가 끝나고 2시간 뒤에 열려요`}>{'아직 식사 전이에요'}</Heading>
+          <Button onClick={() => navigate('/home', { replace: true })}>메인으로</Button>
+        </div>
+      </Layout>
+    )
+  }
+
+  // 24시간 초과 미제출 → 종료 (이번 회차 델타 0, 다음 매칭 대기로 복귀)
+  if (window.expired && !status.submitted) {
+    return (
+      <Layout title="테이블 리뷰" showBack>
+        <div className={styles.center}>
+          <div className={styles.expired}>⏰</div>
+          <Heading sub="테이블 리뷰는 식사 후 24시간 안에만 남길 수 있어요. 이번 테이블은 프로필 반영 없이 넘어갈게">{'리뷰 기간이\n끝났어요'}</Heading>
+          <Button onClick={() => navigate('/home', { replace: true })}>다음 매칭 기다리기</Button>
+        </div>
+      </Layout>
+    )
+  }
 
   // 이미 제출한 리뷰면 결과만 보여준다
   if (status.submitted && phase !== 'result') {
@@ -76,7 +104,7 @@ function Review() {
         <div className={styles.center}>
           <div className={styles.spinner} />
           <Heading sub="오늘 식사에서 드러난 성향 변화를 프로필에 반영하는 중이에요">
-            {'리뷰를 읽고\n프로필을 보정하고 있어요'}
+            {'리뷰를 읽고\n프로필에 반영하고 있어요'}
           </Heading>
         </div>
       </Layout>
@@ -96,7 +124,7 @@ function Review() {
             <strong>{restaurant?.name ?? '오늘의 식사'}</strong>
             <small>{match.members.map((m) => m.name).join(' · ')}</small>
           </span>
-          <span className={styles.deadline}>⏱ {REVIEW_DEADLINE_HOURS}시간 내</span>
+          <span className={styles.deadline}>⏱ {window.hoursLeft === null ? '24시간 내' : `${window.hoursLeft}시간 남음`}</span>
         </div>
       )}
 
@@ -129,7 +157,7 @@ function Review() {
 
       <div className={styles.spacer} />
       <Button onClick={next} disabled={!canNext}>
-        {isLast ? '리뷰 제출하기' : '다음'}
+        {isLast ? '테이블 리뷰 남기기' : '다음'}
       </Button>
       {index > 0 ? (
         <Button variant="ghost" onClick={() => setIndex(index - 1)}>
@@ -144,13 +172,13 @@ function Review() {
   )
 }
 
-// 보정 결과: 축별 변화(델타) + 다양성 선호도
+// 반영 결과: 축별 변화(델타) + 다양성 선호도
 function ResultView({ result, onDone, already = false }) {
   const { before, after, deltas, diversityPref, summary, driftAlert } = result
   return (
-    <Layout title="식사 후 리뷰" showBack>
-      <Notice tone="success">{already ? '이미 제출한 리뷰예요' : '리뷰가 반영됐어요'}</Notice>
-      <Heading sub={summary}>{'프로필이\n이렇게 보정됐어요'}</Heading>
+    <Layout title="테이블 리뷰" showBack>
+      <Notice tone="success">{already ? '이미 남긴 테이블 리뷰예요' : '리뷰가 프로필에 반영됐어요'}</Notice>
+      <Heading sub={summary}>{'프로필이\n이렇게 바뀌었어요'}</Heading>
 
       <div className={styles.traits}>
         {Object.keys(after).map((key) => {
@@ -185,13 +213,18 @@ function ResultView({ result, onDone, already = false }) {
       </div>
 
       {driftAlert && (
-        <Notice>성향이 눈에 띄게 달라졌어요. 다음 매칭부터 보정된 프로필로 그룹을 찾을게요</Notice>
+        <Notice>성향이 눈에 띄게 달라졌어요. 다음 매칭부터 업데이트된 프로필로 그룹을 찾을게요</Notice>
       )}
 
       <div className={styles.spacer} />
       <Button onClick={onDone}>다음 매칭 기다리기</Button>
     </Layout>
   )
+}
+
+function formatMeal(iso) {
+  const d = new Date(iso)
+  return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
 export default Review

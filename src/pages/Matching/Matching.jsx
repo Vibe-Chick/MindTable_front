@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout/Layout'
 import { Button, Heading, Notice } from '../../components/ui/ui'
-import { getMatchResult, requestMatch } from '../../service/matchService'
+import { getMatchResult, requestMatch, upcomingSlots } from '../../service/matchService'
 import { notifyLocal } from '../../service/pushService'
 import { useAuth } from '../../store/AuthContext'
 import { useMatch } from '../../store/MatchContext'
@@ -24,14 +24,21 @@ function Matching() {
   const [doneSteps, setDoneSteps] = useState(0)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState('')
+  // 희망 시간대 선택 단계 ("정해진 배치 시각" 트리거). 'now'면 즉시 매칭
+  const [slots] = useState(() => upcomingSlots())
+  const [picked, setPicked] = useState([])
+  const [started, setStarted] = useState(false)
+
+  const togglePick = (id) => setPicked((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
 
   useEffect(() => {
+    if (!started) return undefined
     let cancelled = false
     const timers = STEPS.map((_, i) => setTimeout(() => !cancelled && setDoneSteps(i + 1), 600 * (i + 1)))
 
     ;(async () => {
       try {
-        const { matchId } = await requestMatch(user.id)
+        const { matchId } = await requestMatch(user.id, picked.length ? picked : ['now'])
         const { result } = await getMatchResult(matchId)
         if (cancelled) return
         setMatch(result)
@@ -48,7 +55,32 @@ function Matching() {
       timers.forEach(clearTimeout)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [started])
+
+  if (!started) {
+    return (
+      <Layout title="매칭 신청" showBack>
+        <Heading sub="같은 시간대를 고른 사람들끼리 묶여요. 여러 개 골라도 돼">{'이번 주 언제\n밥 먹을 수 있어?'}</Heading>
+        <div className={styles.slots}>
+          {slots.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              className={picked.includes(s.id) ? styles.slotOn : styles.slot}
+              onClick={() => togglePick(s.id)}
+            >
+              {s.meal === 'lunch' ? '🌤' : '🌙'} {s.label}
+            </button>
+          ))}
+        </div>
+        <p className={styles.slotHint}>
+          {picked.length ? `${picked.length}개 선택 · 가장 빠른 시간대로 매칭돼요` : '고르지 않으면 지금 바로 매칭을 시도해요'}
+        </p>
+        <div className={styles.spacer} />
+        <Button onClick={() => setStarted(true)}>{picked.length ? '이 시간대로 매칭 신청' : '지금 바로 매칭'}</Button>
+      </Layout>
+    )
+  }
 
   return (
     <Layout>

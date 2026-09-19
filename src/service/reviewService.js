@@ -1,7 +1,7 @@
 import api, { isLive } from './api'
 import { sleep, loadJson, saveJson } from '../utils'
 
-// 식사 후 리뷰(보정 플로우): 자유서술 3문항 + 강제선택 1문항
+// 테이블 리뷰(플로우차트의 '보정'): 자유서술 3문항 + 강제선택 1문항
 // 답변 → LLM이 Big Five 축별 델타(-1~+1) 추출 → 프로필 보정
 export const REVIEW_QUESTIONS = [
   {
@@ -30,7 +30,7 @@ export const REVIEW_QUESTIONS = [
     type: 'choice',
     trait: 'diversity',
     title: '다음 매칭에서는\n어떤 사람들을 만나고 싶어?',
-    hint: '다양성 선호도 보정에 쓰여',
+    hint: '다음 매칭에 반영돼요',
     options: [
       { value: 'similar', emoji: '🤝', label: '오늘처럼 잘 맞는 사람들' },
       { value: 'different', emoji: '🧭', label: '더 다른 배경의 사람들' },
@@ -39,6 +39,18 @@ export const REVIEW_QUESTIONS = [
 ]
 
 export const REVIEW_DEADLINE_HOURS = 24
+export const REVIEW_REQUEST_AFTER_HOURS = 2 // 식사 종료 2시간 후 리뷰 요청
+
+// 식사 시각 기준 리뷰 창(요청 시점 ~ 마감) 계산. mealAt 없으면 제한 없음
+export function reviewWindow(mealAt, now = new Date()) {
+  if (!mealAt) return { opensAt: null, closesAt: null, notYet: false, open: true, expired: false, hoursLeft: null }
+  const meal = new Date(mealAt)
+  const opensAt = new Date(meal.getTime() + REVIEW_REQUEST_AFTER_HOURS * 3600 * 1000)
+  const closesAt = new Date(opensAt.getTime() + REVIEW_DEADLINE_HOURS * 3600 * 1000)
+  const notYet = now < opensAt // 아직 식사 전(또는 식사 직후 2시간 내)
+  const expired = now > closesAt
+  return { opensAt, closesAt, notYet, open: !notYet && !expired, expired, hoursLeft: Math.max(0, Math.ceil((closesAt - now) / 3600000)) }
+}
 
 const REVIEWS_KEY = 'mt_mock_reviews'
 
@@ -91,6 +103,28 @@ export async function submitReview(matchId, answers, currentBigFive) {
     return result
   }
   const { data } = await api.post(`/match/${matchId}/review/`, { answers })
+  return data
+}
+
+// 마이페이지 보정 이력: 리뷰마다 프로필이 어떻게 움직였는지
+export async function getReviewHistory(userId) {
+  if (!isLive('review/history')) {
+    await sleep(200)
+    const seeded = [
+      { matchId: 'h2', date: '2026-08-28', restaurant: '나폴리 화덕피자', deltas: { openness: 0.2, conscientiousness: 0, extraversion: -0.3, agreeableness: 0.1, neuroticism: 0 }, diversityPref: 0.4, driftAlert: false },
+      { matchId: 'h1', date: '2026-09-12', restaurant: '온기설렁탕', deltas: { openness: 0.5, conscientiousness: 0, extraversion: 0.3, agreeableness: 0.3, neuroticism: -0.1 }, diversityPref: 0.6, driftAlert: true },
+    ]
+    const mine = Object.entries(getMockReviews()).map(([matchId, r]) => ({
+      matchId,
+      date: r.submittedAt.slice(0, 10),
+      restaurant: '최근 식사',
+      deltas: r.deltas,
+      diversityPref: r.diversityPref,
+      driftAlert: r.driftAlert,
+    }))
+    return [...seeded, ...mine].sort((a, b) => new Date(b.date) - new Date(a.date))
+  }
+  const { data } = await api.get(`/users/${userId}/reviews/`)
   return data
 }
 

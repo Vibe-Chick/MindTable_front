@@ -83,3 +83,39 @@
   background: var(--green);
   color: #fff;
 }
+
+/* ---------- 희망 시간대 ---------- */
+.slots {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.slot,
+.slotOn {
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 12px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.slotOn {
+  border-color: var(--coral);
+  background: var(--coral-tint);
+  color: var(--coral-ink);
+}
+
+.slotHint {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: var(--ink-muted);
+  text-align: center;
+}
+
+.spacer {
+  flex: 1;
+  min-height: 16px;
+}

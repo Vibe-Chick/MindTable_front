@@ -65,7 +65,7 @@ function PushSettings() {
                 ? '이 브라우저는 푸시를 지원하지 않아요'
                 : prefs.enabled && sub
                   ? `이 기기(${sub.device})로 받는 중`
-                  : '앱을 닫아도 매칭 · 장소 확정 · 리뷰 요청을 알려줘요'}
+                  : '앱을 닫아도 매칭 · 장소 확정 · 테이블 리뷰 요청을 알려줘요'}
             </small>
           </span>
           <button
