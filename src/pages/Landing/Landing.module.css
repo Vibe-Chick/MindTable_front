@@ -1,18 +1,34 @@
+/* 살짝 엠보싱(소프트 뉴모피즘) 느낌: 좌상단 밝은 하이라이트 + 우하단 옅은 그림자 */
 .hero {
   text-align: center;
-  padding: 48px 0 28px;
+  padding: 40px 0 26px;
 }
 
 .logo {
   width: 84px;
   height: 84px;
-  margin: 0 auto 16px;
-  border-radius: 28px;
-  background: linear-gradient(155deg, var(--coral-tint), var(--surface-soft));
+  margin: 0 auto 18px;
+  border-radius: 26px;
+  background: linear-gradient(145deg, #ff8f70, #ff6b52 55%, #f25a40);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 44px;
+  box-shadow:
+    0 10px 24px rgba(242, 90, 64, 0.32),
+    inset 2px 2px 3px rgba(255, 255, 255, 0.45),
+    inset -2px -3px 5px rgba(0, 0, 0, 0.12);
+}
+
+.logoRing {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 8px solid #fff;
+  background: transparent;
+  box-sizing: border-box;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.12),
+    inset 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
 .brand {
@@ -20,6 +36,7 @@
   font-weight: 900;
   margin: 0;
   color: var(--coral-ink);
+  text-shadow: 0 1px 0 #fff;
 }
 
 .tagline {
@@ -29,26 +46,81 @@
   line-height: 1.6;
 }
 
-.points {
+.features {
   list-style: none;
   padding: 0;
   margin: 0 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
-.points li {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 13px 14px;
-  font-size: 14px;
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #fff6f1, #ffeee6);
+  box-shadow:
+    4px 4px 10px rgba(58, 46, 42, 0.08),
+    -3px -3px 8px rgba(255, 255, 255, 0.9),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.8);
 }
 
-.actions {
+.feature > span:last-child {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding-top: 28px;
+  gap: 3px;
+}
+
+.featureIcon {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--coral-tint);
+  color: var(--coral-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    inset 2px 2px 4px rgba(255, 255, 255, 0.9),
+    inset -2px -2px 4px rgba(242, 90, 64, 0.18),
+    2px 2px 5px rgba(58, 46, 42, 0.06);
+}
+
+.featureTitle {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.featureDesc {
+  font-size: 12.5px;
+  color: var(--ink-muted);
+}
+
+.cta {
+  display: block;
+  margin-top: 28px;
+  padding: 17px 18px;
+  border-radius: 20px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 16px;
+  color: #fff;
+  background: linear-gradient(145deg, #ff8a6b, #ff6b52 60%, #f25a40);
+  box-shadow:
+    0 10px 22px rgba(242, 90, 64, 0.35),
+    inset 1px 2px 2px rgba(255, 255, 255, 0.35),
+    inset -1px -2px 4px rgba(0, 0, 0, 0.12);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.cta:active {
+  transform: translateY(1px) scale(0.99);
+  box-shadow:
+    0 5px 12px rgba(242, 90, 64, 0.3),
+    inset 1px 2px 4px rgba(0, 0, 0, 0.15);
 }
