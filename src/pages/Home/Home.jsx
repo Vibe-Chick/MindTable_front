@@ -19,19 +19,9 @@ function Home() {
 
   return (
     <Layout title="MindTable" right={mypageLink}>
-      <Heading sub={user.schoolVerified ? `🎓 ${user.school} · ${user.major}` : '학교 인증 전'}>{`${user.name}님,\n오늘 누구랑 밥 먹을까?`}</Heading>
+      <Heading sub={user.schoolVerified ? `🎓 ${user.school} · ${user.major}` : `${user.email} · 학교 인증 전`}>{`${user.name}님,\n오늘 누구랑 밥 먹을까?`}</Heading>
 
-      {!user.schoolVerified && (
-        <Card className={styles.warn}>
-          <strong>학교 인증이 필요해요</strong>
-          <p>대학 이메일로 인증해야 매칭을 받을 수 있어.</p>
-          <Button variant="secondary" onClick={() => navigate('/verify-school')}>
-            학교 인증 하러 가기
-          </Button>
-        </Card>
-      )}
-
-      {user.schoolVerified && !user.hasProfile && (
+      {!user.hasProfile && (
         <Card className={styles.warn}>
           <strong>성향 테스트를 아직 안 했어요</strong>
           <p>매칭을 받으려면 4개 질문에 먼저 답해줘.</p>
@@ -41,16 +31,30 @@ function Home() {
         </Card>
       )}
 
-      <Card className={styles.matchCard}>
-        <div className={styles.matchIcon}>🍽️</div>
-        <strong>이번 달 무료 매칭 1회</strong>
-        <p>다른 학교 · 다른 전공 3명과 AI가 이어줘요</p>
-        <Button onClick={() => navigate('/matching')} disabled={!user.schoolVerified || !user.hasProfile}>
-          매칭 신청하기
-        </Button>
-      </Card>
+      {user.schoolVerified ? (
+        <Card className={styles.matchCard}>
+          <div className={styles.matchIcon}>🍽️</div>
+          <strong>이번 달 무료 매칭 1회</strong>
+          <p>다른 학교 · 다른 전공 3명과 AI가 이어줘요</p>
+          <Button onClick={() => navigate('/matching')} disabled={!user.hasProfile}>
+            매칭 신청하기
+          </Button>
+        </Card>
+      ) : (
+        <Card className={styles.lockedCard}>
+          <div className={styles.matchIcon}>🔒</div>
+          <strong>식사 매칭은 학교 인증 후에</strong>
+          <p>인증된 대학(원)생끼리만 매칭돼요. 대학 이메일만 있으면 1분이면 끝나요.</p>
+          <Button onClick={() => navigate('/verify-school')}>학교 인증하고 매칭 받기</Button>
+          <ul className={styles.lockedList}>
+            <li>매칭 신청 · 결과</li>
+            <li>제휴 식당 추천</li>
+            <li>학기 구독</li>
+          </ul>
+        </Card>
+      )}
 
-      {match && (
+      {user.schoolVerified && match && (
         <Card>
           <div className={styles.recentHead}>
             <strong>최근 매칭 그룹</strong>
@@ -69,9 +73,11 @@ function Home() {
       )}
 
       <div className={styles.spacer} />
-      <Link to="/subscription" className={styles.subBanner}>
-        🔥 학기 구독 · 월 3,900원으로 무제한 매칭 →
-      </Link>
+      {user.schoolVerified && (
+        <Link to="/subscription" className={styles.subBanner}>
+          🔥 학기 구독 · 월 3,900원으로 무제한 매칭 →
+        </Link>
+      )}
     </Layout>
   )
 }

@@ -48,9 +48,7 @@ function MyPage() {
           <div className={styles.meta}>
             {user.schoolVerified ? `🎓 ${user.school} · ${user.major}` : '학교 인증 전'}
           </div>
-          <div className={styles.email}>
-            {user.provider === 'kakao' ? '💬 카카오 계정' : user.email}
-          </div>
+          <div className={styles.email}>{user.email}</div>
         </div>
       </div>
 
@@ -88,7 +86,7 @@ function MyPage() {
               <div className={styles.pref}>
                 <span>
                   <strong>아직 인증 전이에요</strong>
-                  <small>대학 이메일로 인증해야 매칭을 받을 수 있어</small>
+                  <small>인증하면 매칭 · 식당 추천 · 구독을 쓸 수 있어</small>
                 </span>
                 <Button variant="secondary" full={false} onClick={() => navigate('/verify-school')}>
                   인증하기
