@@ -30,6 +30,7 @@ export function checkAnswerLocally(question, answer) {
 // 문항별 품질 검사 (비어 있으면 바로 반려, 아니면 서버/LLM 판단)
 // 실서버: LLM이 "성향을 읽을 만한 내용이 있는가"를 판단하고, 애매하면 꼬리 질문을 같이 만들어 준다
 // 꼬리 질문은 테스트당 최대 1개 → 화면에서는 4번째 문항으로 보인다 (PsychTest 에서 제한)
+// 꼬리 질문의 답변도 같은 API 로 보낸다 (questionId 'q1-f' 등) — 백엔드가 저장해 analyze 때 함께 쓴다
 // 반환: { ok, reason?, followUpQuestion? }
 //   ok=false          → reason 을 띄우고 같은 문항 다시 작성
 //   followUpQuestion  → 같은 화면에 꼬리 질문을 띄우고 답을 받은 뒤 다음 문항으로
@@ -54,12 +55,11 @@ export function validateAnswers(questions, answers) {
 }
 
 // AI(LLM)가 답변 → Big Five 5축 점수 + 관심사 키워드 3개 추출
-// 기본 질문 답변은 check-answer 때 백엔드가 저장해 두므로 다시 보내지 않는다.
-// userEmail:  user_id 로 전송 (백엔드 명세: 이메일)
-// followUps:  [{ questionId, question, answer }]  꼬리 질문 (최대 1개)
+// 모든 답변(기본 3문항 + 꼬리 질문)은 check-answer 때 백엔드가 저장해 두므로 여기선 user_id 만 보낸다.
+// 명세: { user_id: <이메일> }  →  { bigFive, interests, summary, valid, insufficient[] }
 // valid=false면 insufficient에 다시 써야 할 문항 id(q1…) 또는 index(0부터)가 담겨 온다
-export async function analyzeAnswers(userEmail, followUps = []) {
-  const { data } = await api.post('/psychology/analyze/', { user_id: userEmail, followUps })
+export async function analyzeAnswers(userEmail) {
+  const { data } = await api.post('/psychology/analyze/', { user_id: userEmail })
   return data
 }
 

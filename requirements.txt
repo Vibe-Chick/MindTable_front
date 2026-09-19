@@ -48,7 +48,7 @@ globals==17.12.0
 # [심리 테스트]  (질문은 백엔드가 문항마다 LLM으로 생성, id 는 백엔드 내부 관리 → 프론트는 질문 문자열·답변만 주고받음)
 # POST  /api/psychology/questions/     토큰 O   {}  → { questions: '질문 문자열' }   문항마다 호출(3회), 호출할 때마다 다른 질문
 # POST  /api/psychology/check-answer/  토큰 O   { question, answer }  → { needFollowUp, followUpQuestion|null }   답변 검증 + 애매하면 꼬리 질문 생성 (테스트당 최대 1개 = 4번째 문항)
-# POST  /api/psychology/analyze/       토큰 O   { user_id: <이메일>, followUps: [{ questionId, question, answer }] }  → { bigFive, interests, summary, valid, insufficient[] }   AI 성향 분석 (기본 답변은 check-answer 때 백엔드가 저장)
+# POST  /api/psychology/analyze/       토큰 O   { user_id: <이메일> }  → { bigFive, interests, summary, valid, insufficient[] }   AI 성향 분석 (모든 답변은 check-answer 때 백엔드가 저장, 꼬리 답변은 questionId 'q1-f')
 # POST  /api/users/{id}/profile/       토큰 O   profile  → { ok }                                                분석된 프로필 저장
 #
 # [매칭]  (테이블 방식: 한 명이 날짜·시간·인원을 정해 테이블을 열고, 다른 사람이 신청해 채운다. 정원이 차면 AI가 조합 이유·아이스브레이커 생성)

@@ -83,8 +83,8 @@ function PsychTest() {
     setError('')
     setPhase('analyzing')
     try {
-      // 기본 답변은 check-answer 때 백엔드가 저장 → 여기선 user_id(이메일)와 꼬리 질문만 보낸다
-      const result = await analyzeAnswers(user.email, allFollowUps)
+      // 모든 답변은 check-answer 때 백엔드가 저장 → 여기선 user_id(이메일)만 보낸다
+      const result = await analyzeAnswers(user.email)
       // 추출 결과가 유효하지 않으면 부족한 문항으로 돌아가 재요청 (insufficient: 문항 index 또는 id)
       if (!result.valid) {
         const ids = (result.insufficient ?? []).map((v) => (typeof v === 'number' ? `q${v + 1}` : v))
@@ -116,10 +116,19 @@ function PsychTest() {
   }
 
   // "다음": 이 문항의 답변 품질을 먼저 검사하고 통과해야 넘어간다
-  // 꼬리 질문이 떠 있으면 그 답변을 모아두고 (재검증 없이) 넘어간다
+  // 꼬리 질문이 떠 있으면 그 답변도 check-answer 로 보내 백엔드에 저장하고(재검증 결과는 무시) 넘어간다
   const next = async () => {
     setError('')
     if (followUp) {
+      setChecking(true)
+      try {
+        await checkAnswerQuality({ id: `${followUp.questionId}-f`, type: 'open', title: followUp.question }, followUpAnswer.trim())
+      } catch (err) {
+        setError(err.message)
+        setChecking(false)
+        return
+      }
+      setChecking(false)
       const nextFollowUps = [...followUps, { ...followUp, answer: followUpAnswer.trim() }]
       setFollowUps(nextFollowUps)
       setFollowUp(null)
