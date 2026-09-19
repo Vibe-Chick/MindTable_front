@@ -1,0 +1,78 @@
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--coral);
+  color: #fff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.warn {
+  background: var(--surface-soft);
+  border-color: transparent;
+  margin-bottom: 12px;
+}
+
+.warn p,
+.matchCard p {
+  margin: 4px 0 12px;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.matchCard {
+  text-align: center;
+  margin-bottom: 12px;
+  background: linear-gradient(155deg, var(--coral-tint), #fff);
+}
+
+.matchIcon {
+  font-size: 40px;
+  margin-bottom: 6px;
+}
+
+.recentHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.link {
+  font-size: 12px;
+  color: var(--coral-ink);
+  font-weight: 600;
+}
+
+.members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.member {
+  font-size: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 10px;
+}
+
+.spacer {
+  flex: 1;
+  min-height: 16px;
+}
+
+.subBanner {
+  display: block;
+  text-align: center;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--surface-soft);
+  color: var(--coral-ink);
+  font-weight: 700;
+  font-size: 13px;
+}
