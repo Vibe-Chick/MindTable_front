@@ -1,0 +1,29 @@
+# MindTable 프론트엔드 실행 환경 및 의존성
+# (JS 프로젝트이므로 실제 설치는 package.json 기준 `npm install`로 진행)
+
+# --- Runtime ---
+node==24.18.0
+npm==11.16.0
+
+# --- Dependencies ---
+react==19.3.0
+react-dom==19.3.0
+react-router-dom==7.18.4
+axios==1.20.0
+
+# --- Dev Dependencies ---
+vite==8.3.0
+@vitejs/plugin-react==6.1.1
+tailwindcss==4.3.3
+@tailwindcss/vite==4.3.3
+eslint==10.11.0
+@eslint/js==10.0.1
+eslint-plugin-react-hooks==7.1.1
+eslint-plugin-react-refresh==0.5.7
+globals==17.12.0
+@types/react==19.3.0
+@types/react-dom==19.3.0
+
+# --- 환경 변수 (.env) ---
+# VITE_API_BASE_URL=/api      백엔드 API 주소
+# VITE_USE_MOCK=true          true면 백엔드 없이 mock 데이터로 동작
