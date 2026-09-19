@@ -17,33 +17,38 @@
   gap: 8px;
   padding: 20px 18px;
   border-radius: 20px;
-  background: linear-gradient(145deg, #ff8a6b, var(--coral) 60%, var(--coral-dark));
-  color: #fff;
+  background: var(--glass-strong);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: var(--ink);
   margin-bottom: 12px;
-  box-shadow: 0 10px 22px rgba(242, 90, 64, 0.3);
+  box-shadow: var(--glass-shadow);
 }
 
 .hero strong {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 800;
   line-height: 1.35;
   white-space: pre-line;
+  color: var(--coral-dark);
 }
 
 .hero p {
   margin: 0 0 6px;
   font-size: 13px;
-  color: var(--coral-tint);
+  color: var(--ink-muted);
 }
 
 .heroBtn {
   border: none;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 14px;
-  background: #fff;
-  color: var(--coral-dark);
+  background: var(--coral);
+  color: #fff;
   font-weight: 800;
   font-size: 15px;
+  box-shadow: 0 8px 20px rgba(255, 107, 82, 0.4);
   transition: transform 0.08s ease;
 }
 
@@ -65,7 +70,6 @@
 .matchCard {
   text-align: center;
   margin-bottom: 12px;
-  background: linear-gradient(155deg, var(--coral-tint), #fff);
 }
 
 .matchIcon {
@@ -109,9 +113,11 @@
   display: block;
   text-align: center;
   padding: 14px;
-  border-radius: 14px;
-  background: var(--surface-soft);
-  color: var(--coral-ink);
+  border-radius: 16px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(10px);
+  color: var(--coral-dark);
   font-weight: 700;
   font-size: 13px;
 }
@@ -119,8 +125,6 @@
 .lockedCard {
   text-align: center;
   margin-bottom: 12px;
-  background: var(--bg);
-  border-style: dashed;
 }
 
 .lockedCard p {

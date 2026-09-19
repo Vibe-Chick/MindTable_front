@@ -81,8 +81,8 @@
   height: 64px;
   margin: 0 auto 12px;
   border-radius: 50%;
-  background: var(--green);
-  color: #fff;
+  background: var(--lime);
+  color: var(--lime-ink);
   font-size: 30px;
   display: flex;
   align-items: center;

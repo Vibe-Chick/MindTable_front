@@ -1,8 +1,8 @@
 .badge {
   display: inline-block;
   align-self: flex-start;
-  background: var(--green-tint);
-  color: var(--green);
+  background: var(--lime);
+  color: var(--lime-ink);
   font-size: 12px;
   font-weight: 700;
   padding: 5px 11px;
@@ -36,8 +36,6 @@
 }
 
 .reason {
-  background: linear-gradient(155deg, var(--coral-tint), #fff);
-  border-color: transparent;
   margin-bottom: 14px;
 }
 

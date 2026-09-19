@@ -2,10 +2,45 @@
   max-width: 430px;
   min-height: 100vh;
   margin: 0 auto;
-  background: var(--surface);
+  background: var(--page-gradient);
   display: flex;
   flex-direction: column;
   box-shadow: 0 0 40px var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 배경에 은은하게 번지는 코랄 · 라임 덩어리 (카드 뒤에서 비쳐 보임) */
+.frame::before,
+.frame::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(46px);
+  pointer-events: none;
+}
+
+.frame::before {
+  width: 240px;
+  height: 240px;
+  background: var(--coral);
+  opacity: 0.26;
+  top: -70px;
+  right: -80px;
+}
+
+.frame::after {
+  width: 220px;
+  height: 220px;
+  background: var(--lime);
+  opacity: 0.32;
+  bottom: 40px;
+  left: -80px;
+}
+
+.frame > * {
+  position: relative;
+  z-index: 1;
 }
 
 .nav {

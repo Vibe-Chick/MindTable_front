@@ -11,9 +11,18 @@
   --coral-dark: #e5533c;
   --coral-ink: #b23e2c;
   --coral-tint: #ffdcd2;
-  --green: #2f9e6b;
-  --green-tint: #dff5ea;
+  /* 상태(완료·인증·성공) 포인트: 형광 라임. 채움은 --lime, 글자는 --green(진한 올리브) */
+  --lime: #ccff00;
+  --lime-ink: #3a4a00;
+  --green: #6e8b00;
+  --green-tint: #eeffc2;
   --shadow: rgba(58, 46, 42, 0.1);
+  /* 소프트 글래스: 반투명 카드 + 그라데이션 배경 */
+  --glass: rgba(255, 255, 255, 0.55);
+  --glass-strong: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.85);
+  --glass-shadow: 0 10px 30px rgba(58, 46, 42, 0.1);
+  --page-gradient: linear-gradient(160deg, #fff4ee 0%, #ffe1d6 45%, #f3f0ff 100%);
 
   font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
   color: var(--ink);
@@ -28,7 +37,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--bg);
+  background: #efe9ea;
 }
 
 button,
