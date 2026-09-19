@@ -134,7 +134,7 @@ function Review() {
         <Textarea
           value={current}
           onChange={(e) => setAnswer(q.id, e.target.value)}
-          placeholder="솔직하게 적어줘 (10자 이상)"
+          placeholder="솔직하게 적어줘"
           className={error ? styles.invalid : ''}
         />
       ) : (

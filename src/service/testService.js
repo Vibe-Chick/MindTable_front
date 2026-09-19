@@ -50,44 +50,17 @@ export async function generateQuestions() {
   return data.questions
 }
 
-const MIN_ANSWER_LENGTH = 10
-const MIN_WORDS = 3
-
-// 회피성 답변 — 짧은 답변에 이런 표현만 있으면 성향을 뽑을 수 없다
-const EVASIVE = ['몰라', '모르겠', '딱히', '그냥', '없음', '없어', '없다', '글쎄', '비밀', '패스', '생각 안', '생각안']
-
-// ---------- 문항별 답변 품질 검사 ----------
-// "다음"을 누를 때마다 호출. 통과 못 하면 그 자리에서 다시 쓰게 한다.
+// ---------- 문항별 답변 확인 ----------
+// 프론트는 비어 있는지만 본다. 답변 품질(길이·내용·회피성)은 전부 백엔드 LLM(check-answer)이 판단한다.
 // 반환: { ok, reason }  (reason은 사용자에게 보여줄 문구)
 export function checkAnswerLocally(question, answer) {
   if (question.type === 'choice') {
     return answer ? { ok: true } : { ok: false, reason: '하나를 골라줘' }
   }
-  const text = (answer ?? '').trim()
-  if (text.length < MIN_ANSWER_LENGTH) {
-    return { ok: false, reason: `조금만 더 적어줄래? (${text.length}/${MIN_ANSWER_LENGTH}자)` }
-  }
-  // 완성형 한글 음절이나 영단어가 거의 없으면 (ㅋㅋㅋ, ㅇㅇ, ... 등) 무효
-  const meaningful = (text.match(/[가-힣a-zA-Z]/g) ?? []).length
-  if (meaningful < MIN_ANSWER_LENGTH * 0.6) {
-    return { ok: false, reason: '문장으로 적어줘야 성향을 읽을 수 있어' }
-  }
-  // 같은 글자 반복 (예: "아아아아아아아아아")
-  const uniqueRatio = new Set(text.replace(/\s/g, '')).size / text.replace(/\s/g, '').length
-  if (uniqueRatio < 0.3) {
-    return { ok: false, reason: '같은 글자만 반복된 것 같아. 실제 경험을 적어줘' }
-  }
-  if (text.split(/\s+/).length < MIN_WORDS) {
-    return { ok: false, reason: '단어 몇 개보다는 짧은 문장으로 적어줘' }
-  }
-  // 짧은 회피성 답변 ("잘 몰라요", "딱히 없어요")
-  if (text.length < 30 && EVASIVE.some((w) => text.includes(w))) {
-    return { ok: false, reason: '없으면 없는 이유나 비슷한 경험이라도 적어줘. 그게 더 도움이 돼' }
-  }
-  return { ok: true }
+  return (answer ?? '').trim() ? { ok: true } : { ok: false, reason: '답변을 적어줘' }
 }
 
-// 문항별 품질 검사 (로컬 규칙 → 통과하면 서버/LLM 판단)
+// 문항별 품질 검사 (비어 있으면 바로 반려, 아니면 서버/LLM 판단)
 // 실서버: LLM이 "성향을 읽을 만한 내용이 있는가"를 판단하고, 애매하면 꼬리 질문을 같이 만들어 준다
 // 반환: { ok, reason?, followUpQuestion? }
 //   ok=false          → reason 을 띄우고 같은 문항 다시 작성
@@ -111,7 +84,7 @@ export async function checkAnswerQuality(question, answer) {
   return { ok: true, followUpQuestion: data.needFollowUp && data.followUpQuestion ? data.followUpQuestion : null }
 }
 
-// 전송 전 전체 답변 재검사 (문항별 검사를 우회해 도달한 경우 대비)
+// 전송 전 빈 답변 재확인 (문항별 검사를 우회해 도달한 경우 대비)
 export function validateAnswers(questions, answers) {
   const insufficient = questions.filter((q) => !checkAnswerLocally(q, answers[q.id]).ok).map((q) => q.id)
   return { ok: insufficient.length === 0, insufficient }

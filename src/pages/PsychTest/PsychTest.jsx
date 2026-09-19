@@ -247,7 +247,7 @@ function PsychTest() {
                 setAnswer(q.id, e.target.value)
                 if (error) setError('')
               }}
-              placeholder="여기에 자유롭게 적어줘 (10자 이상)"
+              placeholder="여기에 자유롭게 적어줘"
               className={error ? styles.textareaInvalid : ''}
             />
           ) : (
