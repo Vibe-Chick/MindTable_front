@@ -1,0 +1,84 @@
+.frame {
+  max-width: 430px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 40px var(--shadow);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px 6px;
+  min-height: 52px;
+}
+
+.navSide {
+  width: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.navSide:last-child {
+  justify-content: flex-end;
+}
+
+.navCenter {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.back {
+  border: none;
+  background: var(--surface-soft);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.title {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bar {
+  display: flex;
+  gap: 5px;
+}
+
+.dot,
+.dotOn {
+  width: 26px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--border);
+}
+
+.dotOn {
+  background: var(--coral);
+}
+
+.stepLabel {
+  font-size: 12px;
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+.body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 22px 28px;
+}
