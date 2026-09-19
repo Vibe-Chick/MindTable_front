@@ -54,15 +54,24 @@ export async function loginWithGoogle() {
 
 // Google 공식 버튼을 el 안에 렌더링. 사용자가 누르면 팝업 → credential → onCredential(credential)
 // One Tap(prompt)은 브라우저 상태에 따라 안 뜨는 경우가 많아 버튼 방식으로 고정한다.
+// initialize()는 페이지당 한 번만 호출해야 한다 (여러 번 부르면 GSI 경고 + 마지막 인스턴스만 유효).
+// 로그인 화면을 다시 열 때마다 콜백만 갈아끼우도록 모듈 변수에 보관한다.
+let gsiInitialized = false
+let onCredentialRef = null
+
 export async function renderGoogleButton(el, onCredential) {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
   if (!clientId) throw new Error('Google 클라이언트 ID(VITE_GOOGLE_CLIENT_ID)가 설정되지 않았어요')
   await loadGoogleSdk()
-  window.google.accounts.id.initialize({
-    client_id: clientId,
-    callback: (res) => res.credential && onCredential(res.credential),
-    ux_mode: 'popup',
-  })
+  onCredentialRef = onCredential
+  if (!gsiInitialized) {
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback: (res) => res.credential && onCredentialRef?.(res.credential),
+      ux_mode: 'popup',
+    })
+    gsiInitialized = true
+  }
   window.google.accounts.id.renderButton(el, {
     type: 'standard',
     theme: 'outline',
