@@ -1,0 +1,156 @@
+.badge {
+  display: inline-block;
+  align-self: flex-start;
+  background: var(--green-tint);
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 11px;
+  border-radius: 999px;
+}
+
+.tabs {
+  display: flex;
+  background: var(--surface-soft);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 14px;
+}
+
+.tab,
+.tabOn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 9px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-muted);
+}
+
+.tabOn {
+  background: #fff;
+  color: var(--coral-ink);
+  box-shadow: 0 1px 4px var(--shadow);
+}
+
+.reason {
+  background: linear-gradient(155deg, var(--coral-tint), #fff);
+  border-color: transparent;
+  margin-bottom: 14px;
+}
+
+.reason p {
+  margin: 6px 0 10px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.reasonLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--coral-ink);
+}
+
+.scores {
+  display: flex;
+  gap: 8px;
+}
+
+.scores span {
+  font-size: 11px;
+  font-weight: 700;
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: var(--ink-muted);
+}
+
+.members {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.member {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.initial {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--coral-tint);
+  color: var(--coral-ink);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.name {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.meta {
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.interest {
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.iceIntro {
+  font-size: 13px;
+  color: var(--ink-muted);
+  margin: 0 0 12px;
+}
+
+.topics {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.topic {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.topicNum {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--coral);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.spacer {
+  flex: 1;
+  min-height: 16px;
+}
