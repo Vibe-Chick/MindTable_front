@@ -72,7 +72,7 @@ export async function checkAnswerQuality(question, answer) {
   if (USE_MOCK) {
     await sleep(500)
     // mock: 짧은 답변이면 꼬리 질문 흐름을 볼 수 있게 한 번 되묻는다
-    const short = answer.trim().length < 25
+    const short = answer.trim().length < 1
     return { ok: true, followUpQuestion: short ? `조금만 더 듣고 싶어. "${answer.trim().slice(0, 12)}…" 이럴 때 보통 어떤 기분이야?` : null }
   }
   const { data } = await api.post('/psychology/check-answer/', {
