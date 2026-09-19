@@ -9,6 +9,7 @@ import Matching from './pages/Matching/Matching'
 import MatchResult from './pages/MatchResult/MatchResult'
 import Restaurants from './pages/Restaurants/Restaurants'
 import Subscription from './pages/Subscription/Subscription'
+import Review from './pages/Review/Review'
 import MyPage from './pages/MyPage/MyPage'
 
 // 로그인이 필요한 라우트 보호
@@ -44,6 +45,7 @@ function App() {
             <Route path="/matching/result" element={<MatchResult />} />
             <Route path="/restaurants" element={<Restaurants />} />
             <Route path="/subscription" element={<Subscription />} />
+            <Route path="/review/:matchId" element={<Review />} />
           </Route>
         </Route>
 

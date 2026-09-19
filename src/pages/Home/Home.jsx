@@ -69,6 +69,9 @@ function Home() {
               </span>
             ))}
           </div>
+          <Button variant="secondary" className={styles.reviewBtn} onClick={() => navigate(`/review/${match.id}`)}>
+            🍽️ 식사 후 리뷰 쓰기
+          </Button>
         </Card>
       )}
 

@@ -1,0 +1,215 @@
+.spacer {
+  flex: 1;
+  min-height: 20px;
+}
+
+.center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.spinner {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 5px solid var(--coral-tint);
+  border-top-color: var(--coral);
+  animation: spin 0.9s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.meal {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+
+.meal > span:nth-child(2) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.meal strong {
+  font-size: 14px;
+}
+
+.meal small {
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.mealIcon {
+  font-size: 22px;
+}
+
+.deadline {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--coral-ink);
+  background: var(--surface-soft);
+  border-radius: 999px;
+  padding: 4px 9px;
+  white-space: nowrap;
+}
+
+.invalid {
+  border-color: var(--coral-dark) !important;
+}
+
+.answerError {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--coral-ink);
+  font-weight: 600;
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.choice,
+.choiceOn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 16px;
+  border-radius: 16px;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  font-weight: 600;
+  font-size: 15px;
+  text-align: left;
+}
+
+.choiceOn {
+  border-color: var(--coral);
+  background: var(--coral-tint);
+  color: var(--coral-ink);
+}
+
+.emoji {
+  font-size: 22px;
+}
+
+.traits {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.trait {
+  display: grid;
+  grid-template-columns: 52px 1fr 40px;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.traitName {
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+.traitBar {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  overflow: hidden;
+}
+
+.traitBefore,
+.traitAfter {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.traitBefore {
+  background: var(--coral-tint);
+  border: 1px dashed var(--coral);
+  box-sizing: border-box;
+}
+
+.traitAfter {
+  background: var(--coral);
+  opacity: 0.85;
+}
+
+.deltaUp,
+.deltaDown,
+.deltaZero {
+  font-weight: 700;
+  text-align: right;
+  font-size: 12px;
+}
+
+.deltaUp {
+  color: var(--green);
+}
+
+.deltaDown {
+  color: var(--coral-ink);
+}
+
+.deltaZero {
+  color: var(--ink-muted);
+}
+
+.diversity {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.diversityHead {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.diversityBar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  overflow: hidden;
+}
+
+.diversityFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--coral-tint), var(--coral));
+  border-radius: 999px;
+}
+
+.diversityLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--ink-muted);
+  margin-top: 6px;
+}

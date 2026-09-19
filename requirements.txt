@@ -46,3 +46,5 @@ globals==17.12.0
 # GET   /users/:id/matches        → history[]
 # GET   /match/:id/restaurants    → restaurants[]
 # POST  /match/:id/reserve        { restaurantId }
+# GET   /match/:id/review/        → { submitted, result }                          (식사 후 리뷰 상태)
+# POST  /match/:id/review/        { answers }  → { deltas, before, after, diversityPref, summary, driftAlert }   (보정)
