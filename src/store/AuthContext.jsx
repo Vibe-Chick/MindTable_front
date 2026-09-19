@@ -1,5 +1,6 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useCallback, useContext, useState } from 'react'
 import { loadJson, saveJson } from '../utils'
+import { useIdleLogout } from '../hooks/useIdleLogout'
 
 const AuthContext = createContext(null)
 
@@ -20,11 +21,15 @@ export function AuthProvider({ children }) {
     setUser(u)
   }
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('mt_token')
     localStorage.removeItem('mt_refresh')
+    localStorage.removeItem('mt_last_active')
     setUser(null)
-  }
+  }, [])
+
+  // 30분 동안 아무 동작 없으면 로그아웃 → RequireAuth 가 /login 으로 보낸다
+  useIdleLogout(Boolean(user), logout)
 
   const updateUser = (patch) => setUser({ ...user, ...patch })
 
