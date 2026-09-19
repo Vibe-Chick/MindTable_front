@@ -21,7 +21,10 @@ export async function generateQuestion(index = 0) {
     return MOCK_QUESTIONS[index % MOCK_QUESTIONS.length]
   }
   const { data } = await api.post('/psychology/questions/', {})
-  return data.questions // string
+  // 명세: { questions: '문자열' }. 백엔드가 아직 배열([{ title }])을 주는 동안엔 index 번째 문항을 꺼낸다
+  const q = data.questions
+  if (Array.isArray(q)) return q[index]?.title ?? q[0]?.title ?? ''
+  return q
 }
 
 // ---------- 문항별 답변 확인 ----------
@@ -46,8 +49,8 @@ export async function checkAnswerQuality(question, answer) {
   if (question.type === 'choice') return { ok: true }
   if (USE_MOCK) {
     await sleep(500)
-    // mock: 짧은 답변이면 꼬리 질문 흐름을 볼 수 있게 한 번 되묻는다
-    const short = answer.trim().length < 1
+    // mock: 백엔드와 같은 규칙 — 15자 미만이면 꼬리 질문 (4번째 문항 테스트용)
+    const short = answer.trim().length < 15
     return { ok: true, followUpQuestion: short ? `조금만 더 듣고 싶어. "${answer.trim().slice(0, 12)}…" 이럴 때 보통 어떤 기분이야?` : null }
   }
   const { data } = await api.post('/psychology/check-answer/', {
