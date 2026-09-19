@@ -4,6 +4,8 @@ import Landing from './pages/Landing/Landing'
 import Login from './pages/Login/Login'
 import Signup from './pages/Signup/Signup'
 import FindPassword from './pages/FindPassword/FindPassword'
+import KakaoCallback from './pages/KakaoCallback/KakaoCallback'
+import VerifySchool from './pages/VerifySchool/VerifySchool'
 import Home from './pages/Home/Home'
 import PsychTest from './pages/PsychTest/PsychTest'
 import Matching from './pages/Matching/Matching'
@@ -27,9 +29,11 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/find-password" element={<FindPassword />} />
+        <Route path="/oauth/kakao" element={<KakaoCallback />} />
 
         {/* 인증 후 */}
         <Route element={<RequireAuth />}>
+          <Route path="/verify-school" element={<VerifySchool />} />
           <Route path="/home" element={<Home />} />
           <Route path="/test" element={<PsychTest />} />
           <Route path="/matching" element={<Matching />} />
