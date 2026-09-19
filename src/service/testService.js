@@ -3,15 +3,18 @@ import { sleep, saveJson } from '../utils'
 
 // 기본 질문 3개 (Big Five 기반, 개방형). 4번째는 답변이 애매할 때만 AI가 꼬리 질문으로 생성한다.
 // 질문은 항상 백엔드가 LLM 으로 생성해 내려준다 (하드코딩 없음, mock 모드에서도 실서버 호출).
-// 질문 id 는 백엔드가 내부에서 관리하므로 프론트는 id 를 주고받지 않고, 질문 문자열과 답변만 보낸다.
+// 문항 id(q1·q2·q3)는 프론트가 순서대로 붙이고, check-answer / analyze 의 questionId 로 보낸다.
 export const QUESTION_COUNT = 3
 export const QUESTION_HINT = '정답은 없어, 최근 예시 들어서 편하게 적어줘'
 
 // ---------- 질문 생성 ----------
-// 문항마다 1회 호출. POST /psychology/questions/  {}  →  { questions: '질문 문자열' }  (호출할 때마다 다른 질문)
+// 문항마다 1회 호출. POST /psychology/questions/  {}  →  { question_number, question: '질문 문자열' }  (호출할 때마다 다른 질문)
+// 명세서엔 `questions` 로 적혀 있지만 실제 백엔드는 `question` 으로 내려주므로 둘 다 받는다.
 export async function generateQuestion() {
   const { data } = await api.post('/psychology/questions/', {})
-  return data.questions
+  const title = data.question ?? data.questions
+  if (!title) throw new Error('질문을 받지 못했어요. 잠시 후 다시 시도해줘')
+  return title
 }
 
 // ---------- 문항별 답변 확인 ----------
@@ -34,7 +37,9 @@ export async function checkAnswerQuality(question, answer) {
   const local = checkAnswerLocally(question, answer)
   if (!local.ok) return local
   if (question.type === 'choice') return { ok: true }
+  // 명세: { questionId: 'q1', question, answer }
   const { data } = await api.post('/psychology/check-answer/', {
+    questionId: question.id,
     question: question.title,
     answer,
   })

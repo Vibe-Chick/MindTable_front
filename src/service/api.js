@@ -55,14 +55,20 @@ api.interceptors.response.use(
     const { config, response } = err
     // 로그인·갱신 자체의 401 은 갱신 대상이 아니다
     const isAuthCall = config?.url?.startsWith('/auth/google') || config?.url?.startsWith(REFRESH_URL)
-    if (response?.status === 401 && !isAuthCall && !config._retried && localStorage.getItem('mt_refresh')) {
-      config._retried = true
-      try {
-        refreshing = refreshing ?? refreshAccessToken().finally(() => (refreshing = null))
-        const access = await refreshing
-        config.headers.Authorization = `Bearer ${access}`
-        return api(config)
-      } catch {
+    if (response?.status === 401 && !isAuthCall && !config._retried) {
+      if (localStorage.getItem('mt_refresh')) {
+        config._retried = true
+        try {
+          refreshing = refreshing ?? refreshAccessToken().finally(() => (refreshing = null))
+          const access = await refreshing
+          config.headers.Authorization = `Bearer ${access}`
+          return api(config)
+        } catch {
+          clearSession()
+        }
+      } else if (localStorage.getItem('mt_token')) {
+        // refresh 가 없는데 401 → 백엔드가 모르는 토큰(예: mock 로그인 때 저장된 `mock-u1`).
+        // 갱신할 방법이 없으니 세션을 지우고 다시 로그인하게 한다.
         clearSession()
       }
     }
