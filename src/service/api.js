@@ -30,7 +30,7 @@ api.interceptors.request.use((config) => {
 // access 토큰 수명은 백엔드가 정한다(기본 5분). 프론트는 만료(401)를 감지하면
 // 로그인 때 받아둔 refresh 토큰으로 새 access 를 받고, 원래 요청을 한 번 재시도한다.
 // 백엔드: POST /api/auth/token/refresh/  { refresh }  → { access }   (SimpleJWT TokenRefreshView)
-// 갱신도 실패하면(refresh 만료·경로 없음) 세션을 지우고 로그인 화면으로 보낸다.
+// 갱신도 실패하면(refresh 만료·경로 없음) 세션을 지우고 첫 화면(Landing)으로 보낸다.
 const REFRESH_URL = '/auth/token/refresh/'
 let refreshing = null // 동시에 여러 요청이 401 을 받아도 갱신은 한 번만
 
@@ -45,7 +45,7 @@ async function refreshAccessToken() {
 
 function clearSession() {
   ;['mt_token', 'mt_refresh', 'mt_user'].forEach((k) => localStorage.removeItem(k))
-  if (window.location.pathname !== '/login') window.location.replace('/login')
+  if (window.location.pathname !== '/') window.location.replace('/')
 }
 
 // 백엔드(DRF)가 { error: "..." } 로 주는 메시지를 Error.message 로 꺼내 화면에 그대로 보여준다

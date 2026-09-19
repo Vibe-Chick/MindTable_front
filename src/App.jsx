@@ -12,10 +12,10 @@ import Subscription from './pages/Subscription/Subscription'
 import Review from './pages/Review/Review'
 import MyPage from './pages/MyPage/MyPage'
 
-// 로그인이 필요한 라우트 보호
+// 로그인이 필요한 라우트 보호 — 세션 없으면 첫 화면(Landing)으로
 function RequireAuth() {
   const { isLoggedIn } = useAuth()
-  return isLoggedIn ? <Outlet /> : <Navigate to="/login" replace />
+  return isLoggedIn ? <Outlet /> : <Navigate to="/" replace />
 }
 
 function App() {
