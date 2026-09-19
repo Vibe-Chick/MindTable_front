@@ -28,6 +28,25 @@ export const MEAL_SLOTS = [
 ]
 export const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
 
+// 로컬 날짜 → 'YYYY-MM-DD' (달력 선택 키)
+export function dateKey(date) {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+// 특정 날짜의 점심/저녁 슬롯 (달력에서 고른 날짜용). id 형식은 upcomingSlots 와 동일
+export function slotsForDate(date, now = new Date()) {
+  return MEAL_SLOTS.flatMap((m) => {
+    const [h, min] = m.time.split(':').map(Number)
+    const at = new Date(date)
+    at.setHours(h, min, 0, 0)
+    if (at <= now) return []
+    return [{ id: `${at.toISOString().slice(0, 10)}-${m.value}`, at: at.toISOString(), meal: m.value, label: `${at.getMonth() + 1}/${at.getDate()}(${DAY_LABELS[at.getDay()]}) ${m.label}` }]
+  })
+}
+
 // 오늘부터 7일간의 (날짜 × 점심/저녁) 후보. 이미 지난 시간대는 제외
 export function upcomingSlots(now = new Date()) {
   const slots = []
@@ -45,15 +64,20 @@ export function upcomingSlots(now = new Date()) {
 }
 
 let mockRequestedSlots = null
+let mockSameSchool = null // mock: 같은 학교끼리만 선택 시 결과 멤버의 학교를 내 학교로 맞춘다
 
-// 매칭 신청 (대기자 풀에 등록) — slots: 희망 시간대 id 배열 또는 ['now']
-export async function requestMatch(userId, slots = ['now']) {
+// 매칭 신청 (대기자 풀에 등록)
+// slots:          희망 시간대 id 배열 또는 ['now']
+// sameSchoolOnly: 학교 인증한 사용자만 선택 가능. true 면 같은 학교 인증 사용자끼리만 묶는다 (백엔드가 토큰의 학교로 판단)
+// school:         mock 표시용 (실서버엔 보내지 않음)
+export async function requestMatch(userId, slots = ['now'], { sameSchoolOnly = false, school = null } = {}) {
   if (USE_MOCK) {
     await sleep(400)
     mockRequestedSlots = slots
+    mockSameSchool = sameSchoolOnly ? school : null
     return { matchId: 'match-1', status: 'queued' }
   }
-  const { data } = await api.post('/match/request', { userId, slots })
+  const { data } = await api.post('/match/request', { userId, slots, sameSchoolOnly })
   return data
 }
 
@@ -64,7 +88,8 @@ export async function getMatchResult(matchId) {
     // mock: 고른 시간대 중 첫 번째를 식사 시각으로 확정 (즉시 매칭이면 2시간 뒤)
     const first = mockRequestedSlots?.find((s) => s !== 'now')
     const mealAt = first ? upcomingSlots().find((s) => s.id === first)?.at : null
-    return { status: 'done', result: { ...MOCK_RESULT, mealAt: mealAt ?? new Date(Date.now() + 2 * 3600 * 1000).toISOString() } }
+    const members = mockSameSchool ? MOCK_RESULT.members.map((m) => ({ ...m, school: mockSameSchool })) : MOCK_RESULT.members
+    return { status: 'done', result: { ...MOCK_RESULT, members, mealAt: mealAt ?? new Date(Date.now() + 2 * 3600 * 1000).toISOString() } }
   }
   const { data } = await api.get(`/match/${matchId}`)
   return data

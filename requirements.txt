@@ -52,7 +52,7 @@ globals==17.12.0
 # POST  /api/users/{id}/profile/       토큰 O   profile  → { ok }                                                분석된 프로필 저장
 #
 # [매칭]
-# POST  /api/match/request/            토큰 O   { userId, slots: ['2026-09-21-lunch', ...] | ['now'] }  → { matchId }   (희망 시간대)
+# POST  /api/match/request/            토큰 O   { userId, slots: ['2026-09-21-lunch', ...] | ['now'], sameSchoolOnly }  → { matchId, status }   (희망 시간대: 7일 칩 + 달력(28일) 선택, sameSchoolOnly 는 학교 인증 사용자만 true 가능)
 # GET   /api/match/{id}/               토큰 O   → { status, result: { ..., mealAt } }   (mealAt: 확정된 식사 시각, 리뷰 창 계산용)
 #
 # [식당 추천]

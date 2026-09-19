@@ -13,10 +13,13 @@ function MatchResult() {
 
   if (!match) return <Navigate to="/home" replace />
 
+  // '같은 학교끼리만' 으로 신청했으면 멤버 전원이 같은 학교
+  const sameSchool = match.members.length > 0 && match.members.every((m) => m.school && m.school === match.members[0].school)
+
   return (
     <Layout title="매칭 결과" showBack>
       <div className={styles.badge}>✨ 매칭 완료</div>
-      <Heading sub="🎓 다른 전공 · 다른 학교 조합">{'이런 사람들과\n밥 먹게 됐어요'}</Heading>
+      <Heading sub={sameSchool ? `🎓 같은 학교(${match.members[0].school}) · 다른 전공 조합` : '🎓 다른 전공 · 다른 학교 조합'}>{'이런 사람들과\n밥 먹게 됐어요'}</Heading>
 
       <div className={styles.tabs}>
         <button type="button" className={tab === 'group' ? styles.tabOn : styles.tab} onClick={() => setTab('group')}>

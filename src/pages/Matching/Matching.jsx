@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout/Layout'
 import { Button, Heading, Notice } from '../../components/ui/ui'
-import { getMatchResult, requestMatch, upcomingSlots } from '../../service/matchService'
+import { dateKey, getMatchResult, requestMatch, slotsForDate, upcomingSlots } from '../../service/matchService'
+import SlotCalendar from './SlotCalendar'
 import { notifyLocal } from '../../service/pushService'
 import { useAuth } from '../../store/AuthContext'
 import { useMatch } from '../../store/MatchContext'
@@ -27,9 +28,28 @@ function Matching() {
   // 희망 시간대 선택 단계 ("정해진 배치 시각" 트리거). 'now'면 즉시 매칭
   const [slots] = useState(() => upcomingSlots())
   const [picked, setPicked] = useState([])
+  // 같은 학교끼리만 매칭 — 학교 인증한 사용자에게만 보이는 옵션 (기본은 다른 학교 포함)
+  const [sameSchoolOnly, setSameSchoolOnly] = useState(false)
   const [started, setStarted] = useState(false)
+  // 달력에서 추가한 날짜의 슬롯 (7일 칩 밖의 날짜). 보내는 값은 같은 slots id 형식이라 API 는 그대로
+  const [calOpen, setCalOpen] = useState(false)
+  const [extraSlots, setExtraSlots] = useState([])
 
   const togglePick = (id) => setPicked((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+
+  // 달력에서 날짜 탭: 그 날짜의 점심/저녁 칩을 추가 (다시 탭하면 제거 + 선택 해제)
+  const pickDate = (date) => {
+    const key = dateKey(date)
+    const has = extraSlots.some((s) => s.id.startsWith(key))
+    if (has) {
+      setExtraSlots((prev) => prev.filter((s) => !s.id.startsWith(key)))
+      setPicked((prev) => prev.filter((id) => !id.startsWith(key)))
+    } else {
+      setExtraSlots((prev) => [...prev, ...slotsForDate(date)].sort((a, b) => a.at.localeCompare(b.at)))
+    }
+  }
+  const chipDates = [...new Set(slots.map((s) => s.id.slice(0, 10)))]
+  const extraDates = [...new Set(extraSlots.map((s) => s.id.slice(0, 10)))]
 
   useEffect(() => {
     if (!started) return undefined
@@ -38,11 +58,16 @@ function Matching() {
 
     ;(async () => {
       try {
-        const { matchId } = await requestMatch(user.id, picked.length ? picked : ['now'])
+        const { matchId } = await requestMatch(user.id, picked.length ? picked : ['now'], { sameSchoolOnly, school: user.school })
         const { result } = await getMatchResult(matchId)
         if (cancelled) return
         setMatch(result)
-        notifyLocal({ type: 'match_done', title: '✨ 매칭이 완료됐어요', body: `${result.members.map((m) => m.name).join(' · ')} — 다른 전공 · 다른 학교 조합이에요`, url: '/matching/result' })
+        notifyLocal({
+          type: 'match_done',
+          title: '✨ 매칭이 완료됐어요',
+          body: `${result.members.map((m) => m.name).join(' · ')} — ${sameSchoolOnly ? '같은 학교 · 다른 전공' : '다른 전공 · 다른 학교'} 조합이에요`,
+          url: '/matching/result',
+        })
         setDoneSteps(STEPS.length)
         setReady(true)
       } catch (err) {
@@ -73,9 +98,47 @@ function Matching() {
             </button>
           ))}
         </div>
+        {extraSlots.length > 0 && (
+          <>
+            <p className={styles.extraLabel}>달력에서 추가한 날짜</p>
+            <div className={styles.slots}>
+              {extraSlots.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  className={picked.includes(s.id) ? styles.slotOn : styles.slot}
+                  onClick={() => togglePick(s.id)}
+                >
+                  {s.meal === 'lunch' ? '🌤' : '🌙'} {s.label}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+        <button type="button" className={styles.calToggle} onClick={() => setCalOpen((v) => !v)}>
+          📅 {calOpen ? '달력 닫기' : '다른 날짜 고르기'}
+        </button>
+        {calOpen && <SlotCalendar pickedDates={extraDates} disabledDates={chipDates} onPick={pickDate} />}
         <p className={styles.slotHint}>
           {picked.length ? `${picked.length}개 선택 · 가장 빠른 시간대로 매칭돼요` : '고르지 않으면 지금 바로 매칭을 시도해요'}
         </p>
+
+        {user.schoolVerified && (
+          <label className={styles.option}>
+            <span>
+              🎓 같은 학교끼리만
+              <small>{sameSchoolOnly ? `${user.school} 인증 학생들과만 만나요` : '끄면 다른 학교 학생과도 만나요'}</small>
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={sameSchoolOnly}
+              aria-label="같은 학교끼리만 매칭"
+              className={sameSchoolOnly ? styles.toggleOn : styles.toggle}
+              onClick={() => setSameSchoolOnly((v) => !v)}
+            />
+          </label>
+        )}
         <div className={styles.spacer} />
         <Button onClick={() => setStarted(true)}>{picked.length ? '이 시간대로 매칭 신청' : '지금 바로 매칭'}</Button>
       </Layout>

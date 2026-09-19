@@ -40,7 +40,7 @@ function Home() {
           {!user.hasProfile
             ? '테스트가 끝나면 열려요'
             : user.schoolVerified
-              ? '다른 학교 · 같은 학교 대학생과 AI가 이어줘요'
+              ? '다른 학교 대학생과, 원하면 같은 학교끼리만 AI가 이어줘요'
               : '다른 학교 · 다른 전공 3명과 AI가 이어줘요'}
         </p>
         <Button onClick={() => navigate('/matching')} disabled={!user.hasProfile}>
@@ -52,7 +52,7 @@ function Home() {
         <Card className={[styles.lockedCard, user.hasProfile ? '' : styles.dim].join(' ')}>
           <div className={styles.matchIcon}>🎓</div>
           <strong>학교 인증하면 같은 학교 친구도</strong>
-          <p>인증 없이도 다른 학교 학생과 매칭돼요. 인증하면 같은 학교 사람과도 만날 수 있어요.</p>
+          <p>인증 없이도 다른 학교 학생과 매칭돼요. 인증하면 '같은 학교끼리만' 매칭을 고를 수 있어요.</p>
           <Button variant="secondary" onClick={() => navigate('/verify-school')}>
             학교 인증하기
           </Button>

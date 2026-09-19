@@ -1,0 +1,78 @@
+.cal {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.month {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.navBtn {
+  border: none;
+  background: var(--surface-soft);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.dow {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-muted);
+  padding: 4px 0;
+}
+
+.day,
+.dayOn {
+  border: 1.5px solid transparent;
+  background: transparent;
+  border-radius: 10px;
+  height: 38px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.day:hover:not(:disabled) {
+  background: var(--bg);
+}
+
+.day:disabled {
+  color: var(--border);
+  opacity: 1;
+  cursor: default;
+}
+
+.dayOn {
+  border-color: var(--coral);
+  background: var(--coral-tint);
+  color: var(--coral-ink);
+}
+
+.note {
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: var(--ink-muted);
+  text-align: center;
+}
