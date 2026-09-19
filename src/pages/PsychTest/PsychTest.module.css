@@ -110,3 +110,14 @@
   font-size: 13px;
   font-weight: 600;
 }
+
+.textareaInvalid {
+  border-color: var(--coral-dark) !important;
+}
+
+.answerError {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--coral-ink);
+  font-weight: 600;
+}

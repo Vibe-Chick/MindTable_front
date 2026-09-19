@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout/Layout'
 import { Button, Heading, Notice, Textarea } from '../../components/ui/ui'
-import { QUESTIONS, analyzeAnswers, saveProfileVector, validateAnswers } from '../../service/testService'
+import { QUESTIONS, analyzeAnswers, checkAnswerQuality, saveProfileVector, validateAnswers } from '../../service/testService'
 import { useAuth } from '../../store/AuthContext'
 import { useMatch } from '../../store/MatchContext'
 import { updateProfile } from '../../service/authService'
@@ -24,27 +24,34 @@ function PsychTest() {
   const [index, setIndex] = useState(0)
   const [phase, setPhase] = useState('question') // question | analyzing | result | error
   const [error, setError] = useState('')
+  const [checking, setChecking] = useState(false) // 문항별 품질 검사 중
 
   const q = QUESTIONS[index]
   const current = answers[q.id] ?? ''
-  const canNext = q.type === 'choice' ? Boolean(current) : current.trim().length >= 10
+  const canNext = q.type === 'choice' ? Boolean(current) : current.trim().length > 0
   const isLast = index === QUESTIONS.length - 1
 
+  // 부족한 문항으로 되돌리기 (문항별 검사를 통과했더라도 최종 분석에서 걸릴 수 있음)
+  const goBackTo = (questionIds, message) => {
+    const firstIdx = QUESTIONS.findIndex((x) => questionIds.includes(x.id))
+    setIndex(firstIdx >= 0 ? firstIdx : 0)
+    setError(message)
+    setPhase('question')
+  }
+
   const submit = async () => {
-    if (!validateAnswers(answers)) {
-      setError('답변이 너무 짧은 문항이 있어. 조금만 더 적어줄래?')
-      setIndex(0)
+    const pre = validateAnswers(answers)
+    if (!pre.ok) {
+      goBackTo(pre.insufficient, '이 문항 답변을 조금 더 적어줘야 해')
       return
     }
     setError('')
     setPhase('analyzing')
     try {
       const result = await analyzeAnswers(answers)
-      // 추출 결과가 유효하지 않으면 재요청 (플로우차트의 "재요청" 분기)
+      // 추출 결과가 유효하지 않으면 부족한 문항으로 돌아가 재요청 (플로우차트의 "재요청" 분기)
       if (!result.valid) {
-        setError('AI가 성향을 충분히 파악하지 못했어. 답변을 조금 더 구체적으로 적어줄래?')
-        setPhase('question')
-        setIndex(0)
+        goBackTo(result.insufficient ?? [], 'AI가 이 답변에서 성향을 충분히 읽지 못했어. 조금 더 구체적으로 적어줄래?')
         return
       }
       await saveProfileVector(user.id, result)
@@ -58,12 +65,29 @@ function PsychTest() {
     }
   }
 
-  const next = () => {
-    if (isLast) submit()
-    else setIndex(index + 1)
+  // "다음": 이 문항의 답변 품질을 먼저 검사하고 통과해야 넘어간다
+  const next = async () => {
+    setError('')
+    setChecking(true)
+    try {
+      const { ok, reason } = await checkAnswerQuality(q, current)
+      if (!ok) {
+        setError(reason)
+        return
+      }
+      if (isLast) await submit()
+      else setIndex(index + 1)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setChecking(false)
+    }
   }
 
-  const back = () => setIndex(Math.max(0, index - 1))
+  const back = () => {
+    setError('')
+    setIndex(Math.max(0, index - 1))
+  }
 
   if (phase === 'analyzing') {
     return (
@@ -122,14 +146,17 @@ function PsychTest() {
 
   return (
     <Layout step={index + 1} totalSteps={QUESTIONS.length}>
-      {error && <Notice tone="error">{error}</Notice>}
       <Heading sub={q.hint}>{q.title}</Heading>
 
       {q.type === 'open' ? (
         <Textarea
           value={current}
-          onChange={(e) => setAnswer(q.id, e.target.value)}
+          onChange={(e) => {
+            setAnswer(q.id, e.target.value)
+            if (error) setError('')
+          }}
           placeholder="여기에 자유롭게 적어줘 (10자 이상)"
+          className={error ? styles.textareaInvalid : ''}
         />
       ) : (
         <div className={styles.choices}>
@@ -147,9 +174,11 @@ function PsychTest() {
         </div>
       )}
 
+      {error && <p className={styles.answerError}>⚠️ {error}</p>}
+
       <div className={styles.spacer} />
-      <Button onClick={next} disabled={!canNext}>
-        {isLast ? '분석 시작하기' : '다음'}
+      <Button onClick={next} disabled={!canNext || checking}>
+        {checking ? '답변 확인 중…' : isLast ? '분석 시작하기' : '다음'}
       </Button>
       {index > 0 && (
         <Button variant="ghost" onClick={back}>

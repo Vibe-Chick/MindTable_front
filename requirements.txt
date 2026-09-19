@@ -37,7 +37,8 @@ globals==17.12.0
 # POST  /auth/school/code         { userId, univEmail }  → { school }
 # POST  /auth/school/verify       { userId, univEmail, code, school, major }  → user
 # PATCH /users/:id                { ...patch }  → user
-# POST  /profile/analyze          { answers }  → { bigFive, interests, summary, valid }
+# POST  /profile/check-answer     { questionId, trait, question, answer }  → { ok, reason }
+# POST  /profile/analyze          { answers }  → { bigFive, interests, summary, valid, insufficient[] }
 # POST  /users/:id/profile        profile
 # POST  /match/request            { userId }  → { matchId }
 # GET   /match/:id                → { status, result }
