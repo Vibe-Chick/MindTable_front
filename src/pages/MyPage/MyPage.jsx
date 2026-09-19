@@ -80,7 +80,7 @@ function MyPage() {
               <div className={styles.pref}>
                 <span>
                   <strong>아직 인증 전이에요</strong>
-                  <small>인증하면 매칭 · 식당 추천 · 구독을 쓸 수 있어</small>
+                  <small>인증하면 같은 학교 사람과도 매칭될 수 있어</small>
                 </span>
                 <Button variant="secondary" full={false} onClick={() => navigate('/verify-school')}>
                   인증하기
@@ -103,7 +103,7 @@ function MyPage() {
             <label className={styles.pref}>
               <span>
                 <strong>같은 학교 제외</strong>
-                <small>다른 학교 학생만 매칭 (구독 기능)</small>
+                <small>{user.schoolVerified ? '다른 학교 학생과만 매칭' : '학교 인증 전엔 항상 다른 학교와 매칭돼요'}</small>
               </span>
               <input type="checkbox" checked={prefs.sameSchoolFilter} onChange={(e) => setPrefs({ ...prefs, sameSchoolFilter: e.target.checked })} />
             </label>

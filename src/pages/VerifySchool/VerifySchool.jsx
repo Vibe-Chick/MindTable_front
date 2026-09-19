@@ -8,7 +8,7 @@ import { nextRouteFor } from '../../utils'
 import styles from './VerifySchool.module.css'
 
 // 학교 인증(선택): 대학 이메일 입력 → 인증 코드 확인 → 학교·전공 확정
-// 인증하지 않아도 로그인은 되지만, 매칭·식당·구독은 인증한 사용자만 이용할 수 있다.
+// 인증하지 않아도 모든 기능을 쓸 수 있다. 인증하면 같은 학교 사람과도 매칭될 수 있다.
 function VerifySchool() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
@@ -57,11 +57,11 @@ function VerifySchool() {
   return (
     <Layout step={Math.min(step, 2)} totalSteps={2}>
       {error && <Notice tone="error">{error}</Notice>}
-      {gated && !error && step === 1 && <Notice>이 기능은 학교 인증을 한 사용자만 이용할 수 있어요</Notice>}
+      {gated && !error && step === 1 && <Notice>학교 인증을 하면 같은 학교 사람과도 매칭될 수 있어요</Notice>}
 
       {step === 1 && (
         <>
-          <Heading sub="학교 이메일로 확인할게">{'학교 인증하고\n매칭 받기'}</Heading>
+          <Heading sub="학교 이메일로 확인할게. 인증하면 같은 학교 사람과도 매칭돼">{'학교 인증하고\n같은 학교 친구도 만나기'}</Heading>
           <div className={styles.who}>
             {user.email} · {user.name}
           </div>

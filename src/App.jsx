@@ -18,12 +18,6 @@ function RequireAuth() {
   return isLoggedIn ? <Outlet /> : <Navigate to="/login" replace />
 }
 
-// 학교 인증한 사용자만 쓸 수 있는 라우트 (매칭 · 식당 · 구독)
-function RequireVerified() {
-  const { user } = useAuth()
-  return user.schoolVerified ? <Outlet /> : <Navigate to="/verify-school?reason=gated" replace />
-}
-
 function App() {
   return (
     <BrowserRouter>
@@ -32,21 +26,17 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
 
-        {/* 로그인만 하면 이용 가능 */}
+        {/* 로그인만 하면 전부 이용 가능. 학교 인증은 선택(같은 학교 매칭 옵션) */}
         <Route element={<RequireAuth />}>
           <Route path="/home" element={<Home />} />
           <Route path="/test" element={<PsychTest />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/verify-school" element={<VerifySchool />} />
-
-          {/* 학교 인증한 사용자만 이용 가능 */}
-          <Route element={<RequireVerified />}>
-            <Route path="/matching" element={<Matching />} />
-            <Route path="/matching/result" element={<MatchResult />} />
-            <Route path="/restaurants" element={<Restaurants />} />
-            <Route path="/subscription" element={<Subscription />} />
-            <Route path="/review/:matchId" element={<Review />} />
-          </Route>
+          <Route path="/matching" element={<Matching />} />
+          <Route path="/matching/result" element={<MatchResult />} />
+          <Route path="/restaurants" element={<Restaurants />} />
+          <Route path="/subscription" element={<Subscription />} />
+          <Route path="/review/:matchId" element={<Review />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -32,30 +32,27 @@ function Home() {
         </Card>
       )}
 
-      {user.schoolVerified ? (
-        <Card className={styles.matchCard}>
-          <div className={styles.matchIcon}>🍽️</div>
-          <strong>이번 달 무료 매칭 1회</strong>
-          <p>다른 학교 · 다른 전공 3명과 AI가 이어줘요</p>
-          <Button onClick={() => navigate('/matching')} disabled={!user.hasProfile}>
-            매칭 신청하기
-          </Button>
-        </Card>
-      ) : (
+      <Card className={styles.matchCard}>
+        <div className={styles.matchIcon}>🍽️</div>
+        <strong>이번 달 무료 매칭 1회</strong>
+        <p>{user.schoolVerified ? '다른 학교 · 같은 학교 대학생과 AI가 이어줘요' : '다른 학교 · 다른 전공 3명과 AI가 이어줘요'}</p>
+        <Button onClick={() => navigate('/matching')} disabled={!user.hasProfile}>
+          매칭 신청하기
+        </Button>
+      </Card>
+
+      {!user.schoolVerified && (
         <Card className={styles.lockedCard}>
-          <div className={styles.matchIcon}>🔒</div>
-          <strong>식사 매칭은 학교 인증 후에</strong>
-          <p>인증된 대학(원)생끼리만 매칭돼요. 대학 이메일만 있으면 1분이면 끝나요.</p>
-          <Button onClick={() => navigate('/verify-school')}>학교 인증하고 매칭 받기</Button>
-          <ul className={styles.lockedList}>
-            <li>매칭 신청 · 결과</li>
-            <li>제휴 식당 추천</li>
-            <li>학기 구독</li>
-          </ul>
+          <div className={styles.matchIcon}>🎓</div>
+          <strong>학교 인증하면 같은 학교 친구도</strong>
+          <p>인증 없이도 다른 학교 학생과 매칭돼요. 인증하면 같은 학교 사람과도 만날 수 있어요.</p>
+          <Button variant="secondary" onClick={() => navigate('/verify-school')}>
+            학교 인증하기
+          </Button>
         </Card>
       )}
 
-      {user.schoolVerified && match && (
+      {match && (
         <Card>
           <div className={styles.recentHead}>
             <strong>최근 매칭 그룹</strong>
@@ -81,11 +78,9 @@ function Home() {
       )}
 
       <div className={styles.spacer} />
-      {user.schoolVerified && (
-        <Link to="/subscription" className={styles.subBanner}>
-          🔥 학기 구독 · 월 3,900원으로 무제한 매칭 →
-        </Link>
-      )}
+      <Link to="/subscription" className={styles.subBanner}>
+        🔥 학기 구독 · 월 3,900원으로 무제한 매칭 →
+      </Link>
     </Layout>
   )
 }

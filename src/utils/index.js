@@ -55,9 +55,8 @@ export function nextRouteFor(user) {
   return '/home'
 }
 
-// 학교 인증한 사용자만 쓸 수 있는 기능 (안내 문구용)
-export const VERIFIED_ONLY_FEATURES = ['식사 매칭 신청', '매칭 결과 · 아이스브레이커', '제휴 식당 추천 · 예약', '학기 구독']
-export const FREE_FEATURES = ['AI 성향 테스트 · 결과 보기', '마이페이지 · 통계']
+// 학교 인증은 선택. 인증하면 같은 학교 사람과도 매칭될 수 있다 (안내 문구용)
+export const VERIFIED_BONUS_FEATURES = ['같은 학교 사람과 매칭']
 
 
 export function sleep(ms) {
