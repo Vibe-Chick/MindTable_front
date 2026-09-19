@@ -152,3 +152,14 @@
   flex: 1;
   min-height: 16px;
 }
+
+.hostTag {
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--coral-ink);
+  background: var(--coral-tint);
+  border-radius: 999px;
+  padding: 2px 7px;
+  vertical-align: middle;
+}

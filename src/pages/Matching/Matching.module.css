@@ -179,21 +179,229 @@
   left: 21px;
 }
 
-.extraLabel {
-  margin: 14px 0 8px;
-  font-size: 12px;
-  font-weight: 600;
+/* ---------- 방장 / 멤버 선택 ---------- */
+.modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.mode,
+.modeOn {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  text-align: left;
+}
+
+.mode strong,
+.modeOn strong {
+  font-size: 14px;
+}
+
+.mode small,
+.modeOn small {
+  font-size: 11px;
   color: var(--ink-muted);
 }
 
-.calToggle {
-  margin-top: 10px;
-  width: 100%;
-  border: 1.5px dashed var(--border);
-  background: transparent;
-  border-radius: 12px;
-  padding: 11px;
+.modeOn {
+  border-color: var(--coral);
+  background: var(--coral-tint);
+}
+
+.modeOn strong {
+  color: var(--coral-ink);
+}
+
+.label {
   font-size: 13px;
   font-weight: 600;
+  color: var(--ink-muted);
+  margin: 16px 0 8px;
+}
+
+/* 날짜 고르는 방식 (목록 / 달력) */
+.radios {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.radio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.radio input {
+  accent-color: var(--coral);
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+/* 인원 */
+.caps {
+  display: flex;
+  gap: 8px;
+}
+
+.cap,
+.capOn {
+  flex: 1;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 11px 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.capOn {
+  border-color: var(--coral);
+  background: var(--coral-tint);
   color: var(--coral-ink);
+}
+
+/* ---------- 열린 테이블 목록 ---------- */
+.tabs {
+  display: flex;
+  background: var(--surface-soft);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 12px;
+}
+
+.tab,
+.tabOn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 9px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-muted);
+}
+
+.tabOn {
+  background: #fff;
+  color: var(--coral-ink);
+  box-shadow: 0 1px 4px var(--shadow);
+}
+
+.tables {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.table {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tableTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+}
+
+.seatsLeft {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--coral-ink);
+  background: var(--coral-tint);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+.tableHost {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.tag {
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--green-tint);
+  border-radius: 999px;
+  padding: 2px 8px;
+  color: var(--ink);
+}
+
+.fit {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: var(--coral-ink);
+  font-weight: 600;
+}
+
+/* ---------- 대기: 자리 채워지는 모습 ---------- */
+.seats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 8px 0 16px;
+}
+
+.seat,
+.seatOn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 64px;
+}
+
+.seatInitial {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  border: 1.5px dashed var(--border);
+  color: var(--ink-muted);
+  background: transparent;
+}
+
+.seatOn .seatInitial {
+  border: none;
+  background: var(--coral-tint);
+  color: var(--coral-ink);
+}
+
+.seatName {
+  font-size: 11px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.seatOn .seatName {
+  color: var(--ink);
+  font-weight: 600;
 }

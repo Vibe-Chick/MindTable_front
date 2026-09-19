@@ -2,10 +2,9 @@ import { useState } from 'react'
 import { DAY_LABELS, dateKey } from '../../service/matchService'
 import styles from './SlotCalendar.module.css'
 
-// 희망 날짜 달력: 오늘부터 maxDays 안의 날짜만 고를 수 있다.
-// 이미 칩으로 보이는 날짜(7일)는 비활성 — 그건 위 칩에서 고르면 된다.
-// 날짜를 탭하면 onPick(date) 로 넘기고, 부모가 그 날짜의 점심/저녁 칩을 추가한다.
-function SlotCalendar({ pickedDates, disabledDates, onPick, maxDays = 28 }) {
+// 날짜 달력: 오늘부터 maxDays 안의 날짜만 고를 수 있다. 날짜를 탭하면 onPick(date).
+// disabledDates: 달력에서 막을 날짜 키('YYYY-MM-DD') 목록 (선택)
+function SlotCalendar({ pickedDates, disabledDates = [], onPick, maxDays = 28 }) {
   const today = startOfDay(new Date())
   const last = addDays(today, maxDays - 1)
   const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
@@ -54,14 +53,13 @@ function SlotCalendar({ pickedDates, disabledDates, onPick, maxDays = 28 }) {
               className={on ? styles.dayOn : styles.day}
               disabled={disabled}
               onClick={() => onPick(date)}
-              title={shownAsChip ? '위 목록에서 고를 수 있어요' : undefined}
             >
               {date.getDate()}
             </button>
           )
         })}
       </div>
-      <p className={styles.note}>오늘부터 {maxDays}일 안에서 고를 수 있어요 · 이번 주는 위 목록에서</p>
+      <p className={styles.note}>오늘부터 {maxDays}일 안에서 고를 수 있어요</p>
     </div>
   )
 }

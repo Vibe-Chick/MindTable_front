@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout/Layout'
 import { Button, Card, Heading } from '../../components/ui/ui'
+import { formatMealAt } from '../../service/matchService'
 import { useMatch } from '../../store/MatchContext'
 import styles from './MatchResult.module.css'
 
@@ -19,7 +20,7 @@ function MatchResult() {
   return (
     <Layout title="매칭 결과" showBack>
       <div className={styles.badge}>✨ 매칭 완료</div>
-      <Heading sub={sameSchool ? `🎓 같은 학교(${match.members[0].school}) · 다른 전공 조합` : '🎓 다른 전공 · 다른 학교 조합'}>{'이런 사람들과\n밥 먹게 됐어요'}</Heading>
+      <Heading sub={`🍽️ ${formatMealAt(match.mealAt)} · ${sameSchool ? `같은 학교(${match.members[0].school}) · 다른 전공` : '다른 전공 · 다른 학교'} 조합`}>{'이런 사람들과\n밥 먹게 됐어요'}</Heading>
 
       <div className={styles.tabs}>
         <button type="button" className={tab === 'group' ? styles.tabOn : styles.tab} onClick={() => setTab('group')}>
@@ -50,7 +51,10 @@ function MatchResult() {
               <div key={m.id} className={styles.member}>
                 <div className={styles.initial}>{m.name[0]}</div>
                 <div>
-                  <div className={styles.name}>{m.name}</div>
+                  <div className={styles.name}>
+                    {m.name}
+                    {m.isHost && <span className={styles.hostTag}>방장</span>}
+                  </div>
                   <div className={styles.meta}>
                     {m.major} · {m.school}
                   </div>
