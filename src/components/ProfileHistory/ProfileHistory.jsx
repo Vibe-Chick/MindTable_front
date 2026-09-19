@@ -91,11 +91,7 @@ function ProfileHistory({ userId }) {
               <b>{r.label}</b>
               {list.length > 0 && <small className={styles[`tone_${r.change.tone}`]}>{r.change.text}</small>}
             </span>
-            <Sparkline series={r.series} min={r.min} max={r.max} tone={list.length ? r.change.tone : 'zero'} />
-            <span className={styles.num}>
-              {r.value}
-              {r.unit && <i>{r.unit}</i>}
-            </span>
+            <Sparkline series={r.series} min={r.min} max={r.max} tone={list.length ? r.change.tone : 'zero'} value={r.value} unit={r.unit} />
           </div>
         ))}
       </div>
@@ -147,7 +143,8 @@ function ProfileHistory({ userId }) {
 }
 
 // 추이선: 방향별 색(오름 초록 / 내림 코랄 / 그대로 회색) + 아래쪽 그라데이션 채움
-function Sparkline({ series, min, max, tone }) {
+// 숫자는 선 끝점 높이에 맞춰 바로 옆에 붙인다
+function Sparkline({ series, min, max, tone, value, unit }) {
   const W = 88
   const H = 30
   const color = tone === 'down' ? '#e5533c' : tone === 'zero' ? '#9c9c9c' : '#2f9e6b'
@@ -155,8 +152,10 @@ function Sparkline({ series, min, max, tone }) {
   const x = (i) => 4 + (i / (pts.length - 1)) * (W - 8)
   const y = (v) => 4 + (1 - (v - min) / (max - min)) * (H - 8)
   const line = pts.map((v, i) => `${x(i)},${y(v)}`).join(' ')
-  const id = `sp-${tone}-${Math.round(y(pts[pts.length - 1]))}-${pts.length}`
+  const lastY = y(pts[pts.length - 1])
+  const id = `sp-${tone}-${Math.round(lastY)}-${pts.length}`
   return (
+    <span className={styles.sparkWrap}>
     <svg className={styles.spark} viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
       <defs>
         <linearGradient id={id} x1="0" x2="0" y1="0" y2="1">
@@ -166,8 +165,13 @@ function Sparkline({ series, min, max, tone }) {
       </defs>
       <polygon fill={`url(#${id})`} points={`4,${H} ${line} ${x(pts.length - 1)},${H}`} />
       <polyline fill="none" stroke={color} strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" points={line} />
-      <circle cx={x(pts.length - 1)} cy={y(pts[pts.length - 1])} r="3" fill={color} />
+      <circle cx={x(pts.length - 1)} cy={lastY} r="3" fill={color} />
     </svg>
+    <span className={styles.num} style={{ top: `${(lastY / H) * 100}%` }}>
+      {value}
+      {unit && <i>{unit}</i>}
+    </span>
+    </span>
   )
 }
 

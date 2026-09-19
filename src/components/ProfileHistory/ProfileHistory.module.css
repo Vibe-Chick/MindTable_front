@@ -44,9 +44,12 @@
 }
 
 .num {
-  font-size: 27px;
-  letter-spacing: -1.2px;
-  text-align: right;
+  position: absolute;
+  left: 94px;
+  transform: translateY(-50%);
+  font-size: 24px;
+  letter-spacing: -1px;
+  white-space: nowrap;
 }
 
 .num i {
@@ -79,7 +82,7 @@
 
 .row {
   display: grid;
-  grid-template-columns: 22px 1fr 88px 64px;
+  grid-template-columns: 22px 1fr 152px;
   align-items: center;
   gap: 8px;
   padding: 12px 0;
@@ -119,6 +122,13 @@
 .tone_zero {
   color: var(--ink-muted);
   font-weight: 600;
+}
+
+.sparkWrap {
+  position: relative;
+  display: block;
+  width: 152px;
+  height: 30px;
 }
 
 .spark {
