@@ -1,16 +1,18 @@
 import { useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import Layout from '../../components/Layout/Layout'
 import { Button, Field, Heading, Input, Notice } from '../../components/ui/ui'
 import { requestSchoolCode, verifySchoolCode } from '../../service/authService'
 import { useAuth } from '../../store/AuthContext'
-import { nextRouteFor } from '../../utils'
+import { VERIFIED_ONLY_FEATURES, nextRouteFor } from '../../utils'
 import styles from './VerifySchool.module.css'
 
-// 학교 인증: 대학 이메일 입력 → 인증 코드 확인 → 학교·전공 확정
-// 카카오/이메일 어느 쪽으로 가입했든 매칭 전에 반드시 거친다.
+// 학교 인증(선택): 대학 이메일 입력 → 인증 코드 확인 → 학교·전공 확정
+// 인증하지 않아도 로그인은 되지만, 매칭·식당·구독은 인증한 사용자만 이용할 수 있다.
 function VerifySchool() {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const gated = params.get('reason') === 'gated' // 인증 필요 기능에 접근하다 넘어온 경우
   const { user, updateUser } = useAuth()
   const [step, setStep] = useState(1)
   const [univEmail, setUnivEmail] = useState('')
@@ -54,13 +56,19 @@ function VerifySchool() {
   return (
     <Layout step={Math.min(step, 2)} totalSteps={2}>
       {error && <Notice tone="error">{error}</Notice>}
+      {gated && !error && step === 1 && <Notice>이 기능은 학교 인증을 한 사용자만 이용할 수 있어요</Notice>}
 
       {step === 1 && (
         <>
-          <Heading sub="대학(원)생만 이용할 수 있어서, 학교 이메일로 확인할게">{'학교 인증이\n필요해요'}</Heading>
+          <Heading sub="매칭은 인증된 대학(원)생끼리만 이어져요. 학교 이메일로 확인할게">{'학교 인증하고\n매칭 받기'}</Heading>
           <div className={styles.who}>
-            {user.provider === 'kakao' ? '💬 카카오' : '✉️ 이메일'} 계정 · {user.name}
+            {user.email} · {user.name}
           </div>
+          <ul className={styles.features}>
+            {VERIFIED_ONLY_FEATURES.map((f) => (
+              <li key={f}>🔓 {f}</li>
+            ))}
+          </ul>
           <Field label="대학 이메일" hint=".ac.kr 또는 .edu 로 끝나는 학교 메일">
             <Input
               type="email"
@@ -71,6 +79,9 @@ function VerifySchool() {
           </Field>
           <Button onClick={sendCode} disabled={loading || !univEmail}>
             {loading ? '보내는 중…' : '인증 코드 받기'}
+          </Button>
+          <Button variant="ghost" onClick={() => navigate('/home', { replace: true })} disabled={loading}>
+            나중에 할게요
           </Button>
         </>
       )}
@@ -102,7 +113,9 @@ function VerifySchool() {
           <div className={styles.check}>🎓</div>
           <Notice tone="success">학교 인증이 완료됐어요</Notice>
           <Heading sub={`${school} · ${major}`}>인증 완료!</Heading>
-          <Button onClick={() => navigate('/test', { replace: true })}>성향 테스트 시작하기</Button>
+          <Button onClick={() => navigate(user.hasProfile ? '/home' : '/test', { replace: true })}>
+            {user.hasProfile ? '매칭 받으러 가기' : '성향 테스트 시작하기'}
+          </Button>
         </div>
       )}
     </Layout>
