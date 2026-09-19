@@ -63,12 +63,15 @@ globals==17.12.0
 # GET   /api/match/{id}/recommend/     토큰 O   → [{ ...열린 테이블 항목, fit, fitReason, sharedInterests[] }]   ({id} = 내 user id)
 #                                                 AI 추천 테이블. 저장된 내 프로필(interests·summary·bigFive)과 참가자 프로필을 비교해 fit(0~1) 내림차순. 프로필 없으면 400
 #
-# [식당 추천]
-# GET   /api/match/{id}/restaurants/               토큰 O   ?location&price&avoid  → { source: 'partner'|'map', restaurants[] }   (제휴 없으면 지도 API fallback)
-# POST  /api/match/{id}/reserve/                   토큰 O   { restaurantId }
-# POST  /api/match/{id}/restaurants/preferences/   토큰 O   { location, customLocation, price, avoid }  → { submitted, total, common }
-# GET   /api/match/{id}/vote/                      토큰 O   → { votes: {userId: restaurantId}, confirmed: restaurantId|null }
-# POST  /api/match/{id}/vote/                      토큰 O   { restaurantId }  → 위와 동일 (과반이면 confirmed)
+# [식당 추천]  (흐름: 멤버 각자 조건 제출 → 전원 제출되면 AI가 식당 한 곳 추천 → 예약 → 확정. 투표 없음. {id} = 매칭(테이블) id, status 가 done 인 테이블만)
+# POST  /api/match/{id}/restaurants/preferences/   토큰 O   { location: 'my-school'|'midpoint'|'custom', customLocation, price: 'low'|'mid'|'high', avoid }  → { submitted, total, common: { location, price, avoid } }
+#                                                 그룹 조건 제출. customLocation 은 location='custom' 일 때만(지명 문자열), avoid 는 못 먹는 음식 자유 입력('' 가능)
+#                                                 응답 submitted/total = 제출한 멤버 수/정원, common = 지금까지 제출된 조건의 교집합 (location 은 표시용 지명 문자열 예: '왕십리역 인근', price 는 겹치는 예산대, avoid 는 합집합)
+# GET   /api/match/{id}/restaurants/               토큰 O   → { status: 'waiting'|'done', submitted, total, common, source: 'partner'|'map'|null, restaurant: { id, name, cuisine, walk, price, discount|null, hue: [색1, 색2], lat, lng }|null, reason }
+#                                                 AI 추천 식당 (한 곳). 프론트가 대기 화면에서 2초마다 폴링 → 전원 제출 전엔 waiting(restaurant null), 전원 제출되면 AI가 common 조건으로 제휴 DB 에서 한 곳 선택 → 없으면 지도 API 로 근처 식당 한 곳 (source 'map', discount null)
+#                                                 reason 은 AI 가 고른 이유 한 문장. 한 번 done 이면 같은 restaurant 를 계속 반환 (멤버마다 같은 결과) · walk '7분' 같은 도보 시간 문자열, hue 는 썸네일 그라데이션 hex 2개, lat/lng 지도 표시용
+# POST  /api/match/{id}/reserve/                   토큰 O   { restaurantId }  → { ok, reservationId }
+#                                                 추천 식당 예약. done 을 본 멤버마다 호출될 수 있으니 멱등 처리(이미 예약됐으면 같은 reservationId 반환) · 추천된 식당과 다른 id 면 400
 #
 # [마이페이지]
 # PATCH /api/users/{id}/               토큰 O   { ...patch }  → user            내 정보 수정
