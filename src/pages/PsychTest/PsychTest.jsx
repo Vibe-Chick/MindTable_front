@@ -83,9 +83,12 @@ function PsychTest() {
     setError('')
     setPhase('analyzing')
     try {
-      // 백엔드는 질문 id 를 모르므로 질문 문자열과 답변을 순서대로 보낸다
-      const payload = questions.map((x) => ({ question: x.title, answer: answers[x.id] }))
-      const result = await analyzeAnswers(payload, allFollowUps.map(({ question, answer }) => ({ question, answer })))
+      // 기본 답변은 check-answer 때 백엔드가 저장 → 여기선 user_id(이메일)와 꼬리 질문만 보낸다
+      const result = await analyzeAnswers(
+        user.email,
+        allFollowUps,
+        questions.map((x) => ({ question: x.title, answer: answers[x.id] })), // mock 계산용
+      )
       // 추출 결과가 유효하지 않으면 부족한 문항으로 돌아가 재요청 (insufficient: 문항 index 또는 id)
       if (!result.valid) {
         const ids = (result.insufficient ?? []).map((v) => (typeof v === 'number' ? `q${v + 1}` : v))
@@ -137,7 +140,7 @@ function PsychTest() {
       }
       // 꼬리 질문은 테스트당 1개까지 (4번째 문항). 이미 받았으면 그냥 넘어간다
       if (followUpQuestion && followUps.length === 0) {
-        setFollowUp({ question: followUpQuestion })
+        setFollowUp({ questionId: q.id, question: followUpQuestion })
         return
       }
       await advance(followUps)

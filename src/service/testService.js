@@ -65,10 +65,12 @@ export function validateAnswers(questions, answers) {
 }
 
 // AI(LLM)가 답변 → Big Five 5축 점수 + 관심사 키워드 3개 추출
-// answers:   [{ question, answer }]  기본 질문 순서대로
-// followUps: [{ question, answer }]  꼬리 질문 (최대 1개)
-// valid=false면 insufficient에 다시 써야 할 문항 index(0부터)가 담겨 온다
-export async function analyzeAnswers(answers, followUps = []) {
+// 기본 질문 답변은 check-answer 때 백엔드가 저장해 두므로 다시 보내지 않는다.
+// userEmail:  user_id 로 전송 (백엔드 명세: 이메일)
+// followUps:  [{ questionId, question, answer }]  꼬리 질문 (최대 1개)
+// answers:    mock 계산용 [{ question, answer }] — 실서버엔 보내지 않음
+// valid=false면 insufficient에 다시 써야 할 문항 id(q1…) 또는 index(0부터)가 담겨 온다
+export async function analyzeAnswers(userEmail, followUps = [], answers = []) {
   if (USE_MOCK) {
     await sleep(2200)
     const text = answers.map((a) => a.answer).join(' ')
@@ -87,7 +89,7 @@ export async function analyzeAnswers(answers, followUps = []) {
       insufficient: [],
     }
   }
-  const { data } = await api.post('/psychology/analyze/', { answers, followUps })
+  const { data } = await api.post('/psychology/analyze/', { user_id: userEmail, followUps })
   return data
 }
 
