@@ -1,4 +1,4 @@
-import api, { USE_MOCK } from './api'
+import api, { isLive } from './api'
 import { sleep, loadJson, saveJson } from '../utils'
 
 // ---------- 테이블 방식 매칭 ----------
@@ -152,7 +152,7 @@ function mockOpenTables(me) {
 // ---------- ① 테이블 만들기 (방장) ----------
 // slot: 'YYYY-MM-DD-lunch' 1개 · capacity: 나 포함 3~6 · sameSchoolOnly: 학교 인증 사용자만 true
 export async function createTable(me, slot, { capacity = 4, sameSchoolOnly = false } = {}) {
-  if (USE_MOCK) {
+  if (!isLive('match')) {
     await sleep(400)
     const table = {
       id: `match-${Date.now()}`,
@@ -172,7 +172,7 @@ export async function createTable(me, slot, { capacity = 4, sameSchoolOnly = fal
 
 // ---------- ② 열린 테이블 목록 (멤버) ----------
 export async function getOpenTables(me) {
-  if (USE_MOCK) {
+  if (!isLive('match')) {
     await sleep(500)
     return mockOpenTables(me)
   }
@@ -182,7 +182,7 @@ export async function getOpenTables(me) {
 
 // AI 추천 테이블: 열린 테이블 항목 + fit(0~1) · fitReason · sharedInterests. 프로필 없으면 400
 export async function getRecommendedTables(me) {
-  if (USE_MOCK) {
+  if (!isLive('match')) {
     await sleep(700)
     const extras = {
       'open-1': { fit: 0.91, fitReason: '사진·전시 얘기가 잘 통할 조합이에요', sharedInterests: ['사진', '전시'] },
@@ -201,7 +201,7 @@ export async function getRecommendedTables(me) {
 // ---------- ③ 테이블 신청 (멤버) ----------
 // 400: 이미 신청 / 정원 마감 / 시간 겹침 · 403: 같은 학교 전용
 export async function joinTable(me, table) {
-  if (USE_MOCK) {
+  if (!isLive('match')) {
     await sleep(400)
     if (loadTables()[table.id]) throw new Error('이미 신청한 테이블이에요')
     const host = MOCK_PEOPLE.find((p) => p.name === table.host.name) ?? MOCK_PEOPLE[0]
@@ -221,7 +221,7 @@ export async function joinTable(me, table) {
 // ---------- ④ 테이블 상세/상태 ----------
 // open 동안 reason/scores 는 null, icebreakers 는 [] · done 이면 AI 결과 포함
 export async function getMatchResult(matchId, me) {
-  if (USE_MOCK) {
+  if (!isLive('match')) {
     await sleep(300)
     const table = loadTables()[matchId]
     if (!table) throw new Error('테이블을 찾을 수 없어요')
@@ -232,8 +232,9 @@ export async function getMatchResult(matchId, me) {
 }
 
 // 마이페이지용 매칭 기록
+// ※ ProfileHistory 가 아직 옛 필드(date·groupSize)를 읽어서 명세( role·mealAt·capacity·memberCount )로 바꾸기 전까진 mock 유지 → 'match/history' 로 따로 켠다
 export async function getMatchHistory(userId) {
-  if (USE_MOCK) {
+  if (!isLive('match/history')) {
     await sleep(300)
     return [
       { id: 'h1', date: '2026-09-12', groupSize: 4, restaurant: '온기설렁탕', status: 'done' },

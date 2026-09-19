@@ -1,4 +1,4 @@
-import api, { USE_MOCK, isLive } from './api'
+import api, { isLive } from './api'
 import { sleep, loadJson, saveJson } from '../utils'
 
 const MOCK_RESTAURANTS = [
@@ -30,7 +30,7 @@ const PREFS_KEY = 'mt_mock_restaurant_prefs'
 
 // ---------- ① 그룹 조건 제출 (위치 · 예산 · 못 먹는 음식) ----------
 export async function submitPreferences(matchId, prefs, { total } = {}) {
-  if (!isLive('restaurants/preferences')) {
+  if (!isLive('restaurants')) {
     await sleep(600)
     saveJson(PREFS_KEY, { ...loadJson(PREFS_KEY, {}), [matchId]: { prefs, total, submittedAt: Date.now() } })
     return { submitted: 1, total, common: mockCommon(prefs) }
@@ -43,7 +43,7 @@ export async function submitPreferences(matchId, prefs, { total } = {}) {
 // 응답: { status: 'waiting' | 'done', submitted, total, common, source: 'partner' | 'map' | null, restaurant: {...} | null, reason }
 // 프론트는 waiting 동안 2초마다 폴링
 export async function getRecommendedRestaurant(matchId) {
-  if (!isLive('restaurants/list')) {
+  if (!isLive('restaurants')) {
     await sleep(200)
     const saved = loadJson(PREFS_KEY, {})[matchId]
     if (!saved) return { status: 'waiting', submitted: 0, total: 0, common: null, source: null, restaurant: null, reason: null }
@@ -76,7 +76,7 @@ function mockCommon(prefs) {
 
 // ---------- ③ 추천 확정 후 예약 ----------
 export async function reserveRestaurant(matchId, restaurantId) {
-  if (USE_MOCK) {
+  if (!isLive('restaurants')) {
     await sleep(500)
     return { ok: true, reservationId: `rsv-${restaurantId}` }
   }
