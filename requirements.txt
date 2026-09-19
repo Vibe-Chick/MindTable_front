@@ -51,3 +51,7 @@ globals==17.12.0
 # POST  /match/:id/reserve        { restaurantId }
 # GET   /match/:id/review/        → { submitted, result }                          (식사 후 리뷰 상태)
 # POST  /match/:id/review/        { answers }  → { deltas, before, after, diversityPref, summary, driftAlert }   (보정)
+# GET   /notifications/           → [{ id, type, body, matchId, read, createdAt }]   type: match_done | place_confirmed | review_request | school_verified
+# PATCH /notifications/:id/       { read: true }
+# POST  /notifications/read-all/
+#   (실서버에서는 매칭 완료 · 장소 확정 · 식사 2시간 후 리뷰 요청 시점에 백엔드가 알림 생성)

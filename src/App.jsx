@@ -10,6 +10,7 @@ import MatchResult from './pages/MatchResult/MatchResult'
 import Restaurants from './pages/Restaurants/Restaurants'
 import Subscription from './pages/Subscription/Subscription'
 import Review from './pages/Review/Review'
+import Notifications from './pages/Notifications/Notifications'
 import MyPage from './pages/MyPage/MyPage'
 
 // 로그인이 필요한 라우트 보호
@@ -38,6 +39,7 @@ function App() {
           <Route path="/test" element={<PsychTest />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/verify-school" element={<VerifySchool />} />
+          <Route path="/notifications" element={<Notifications />} />
 
           {/* 학교 인증한 사용자만 이용 가능 */}
           <Route element={<RequireVerified />}>

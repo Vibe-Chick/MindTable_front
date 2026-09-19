@@ -3,6 +3,7 @@ import Layout from '../../components/Layout/Layout'
 import { Button, Card, Heading } from '../../components/ui/ui'
 import { useAuth } from '../../store/AuthContext'
 import { useMatch } from '../../store/MatchContext'
+import { useNotifications } from '../../store/NotificationContext'
 import styles from './Home.module.css'
 
 // 메인 화면: 매칭 신청 진입점 + 최근 매칭 요약
@@ -10,11 +11,18 @@ function Home() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { match } = useMatch()
+  const { unreadCount } = useNotifications()
 
   const mypageLink = (
-    <Link to="/mypage" className={styles.avatar} aria-label="마이페이지">
-      {user.name[0]}
-    </Link>
+    <>
+      <Link to="/notifications" className={styles.bell} aria-label="알림">
+        🔔
+        {unreadCount > 0 && <span className={styles.bellBadge}>{unreadCount > 9 ? '9+' : unreadCount}</span>}
+      </Link>
+      <Link to="/mypage" className={styles.avatar} aria-label="마이페이지">
+        {user.name[0]}
+      </Link>
+    </>
   )
 
   return (

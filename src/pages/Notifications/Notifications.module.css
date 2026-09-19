@@ -1,0 +1,109 @@
+.readAll {
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--coral-ink);
+  white-space: nowrap;
+}
+
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--ink-muted);
+}
+
+.emptyIcon {
+  font-size: 40px;
+  margin-bottom: 8px;
+}
+
+.empty p {
+  margin: 0 0 4px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.empty small {
+  font-size: 12px;
+}
+
+.group {
+  margin-bottom: 18px;
+}
+
+.day {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-muted);
+  margin: 0 0 8px;
+}
+
+.item,
+.itemUnread {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  text-align: left;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.itemUnread {
+  background: var(--bg);
+  border-color: var(--coral-tint);
+}
+
+.icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--surface-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex: none;
+}
+
+.text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.text strong {
+  font-size: 14px;
+}
+
+.text > span {
+  font-size: 13px;
+  color: var(--ink-muted);
+  line-height: 1.45;
+}
+
+.text small {
+  font-size: 11px;
+  color: var(--ink-muted);
+  margin-top: 2px;
+}
+
+.dot {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--coral);
+}
