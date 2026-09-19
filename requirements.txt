@@ -51,9 +51,17 @@ globals==17.12.0
 # POST  /api/psychology/analyze/       토큰 O   { user_id: <이메일>, followUps: [{ questionId, question, answer }] }  → { bigFive, interests, summary, valid, insufficient[] }   AI 성향 분석 (기본 답변은 check-answer 때 백엔드가 저장)
 # POST  /api/users/{id}/profile/       토큰 O   profile  → { ok }                                                분석된 프로필 저장
 #
-# [매칭]
-# POST  /api/match/request/            토큰 O   { userId, slots: ['2026-09-21-lunch', ...] | ['now'], sameSchoolOnly }  → { matchId, status }   (희망 시간대: 7일 칩 + 달력(28일) 선택, sameSchoolOnly 는 학교 인증 사용자만 true 가능)
-# GET   /api/match/{id}/               토큰 O   → { status, result: { ..., mealAt } }   (mealAt: 확정된 식사 시각, 리뷰 창 계산용)
+# [매칭]  (테이블 방식: 한 명이 날짜·시간·인원을 정해 테이블을 열고, 다른 사람이 신청해 채운다. 정원이 차면 AI가 조합 이유·아이스브레이커 생성)
+# POST  /api/match/request/            토큰 O   { userId, slots: ['2026-09-25-lunch'], sameSchoolOnly, capacity }  → { matchId, status: 'open' }
+#                                                 테이블 만들기. slots 는 1개(7일 칩 또는 달력 28일), capacity 3~6 (나 포함), sameSchoolOnly 는 학교 인증 사용자만 true
+# GET   /api/match/{id}/               토큰 O   → { status: 'open'|'done'|'cancelled', result: { id, hostId, mealAt, capacity, sameSchoolOnly, members[{ id, name, major, school, interest, isHost }], reason, scores, icebreakers } }
+#                                                 테이블 상세/상태. open 동안 reason/scores 는 null, icebreakers 는 [] · mealAt 은 리뷰 창 계산용
+# GET   /api/match/open/               토큰 O   → [{ id, mealAt, capacity, memberCount, sameSchoolOnly, host{ name, school, major }, joined }]
+#                                                 열린 테이블 목록 (정원 미달만, mealAt 오름차순). sameSchoolOnly 테이블은 같은 학교 인증 사용자에게만 노출
+# POST  /api/match/{id}/join/          토큰 O   {}  → { status: 'open'|'done', memberCount, capacity }
+#                                                 테이블 신청. done 이면 곧바로 GET /match/{id}/ 로 결과 조회 · 400: 이미 신청/정원 마감/시간 겹침, 403: 같은 학교 전용
+# GET   /api/match/{id}/recommend/     토큰 O   → [{ ...열린 테이블 항목, fit, fitReason, sharedInterests[] }]   ({id} = 내 user id)
+#                                                 AI 추천 테이블. 저장된 내 프로필(interests·summary·bigFive)과 참가자 프로필을 비교해 fit(0~1) 내림차순. 프로필 없으면 400
 #
 # [식당 추천]
 # GET   /api/match/{id}/restaurants/               토큰 O   ?location&price&avoid  → { source: 'partner'|'map', restaurants[] }   (제휴 없으면 지도 API fallback)
@@ -64,7 +72,7 @@ globals==17.12.0
 #
 # [마이페이지]
 # PATCH /api/users/{id}/               토큰 O   { ...patch }  → user            내 정보 수정
-# GET   /api/users/{id}/matches/       토큰 O   → history[]                     매칭 기록
+# GET   /api/users/{id}/matches/       토큰 O   → [{ id, role: 'host'|'member', status, mealAt, capacity, memberCount, restaurant|null }]   매칭 기록 (mealAt 내림차순)
 #
 # [테이블 리뷰]
 # GET   /api/match/{id}/review/        토큰 O   → { submitted, result }                                                    리뷰 제출 상태
