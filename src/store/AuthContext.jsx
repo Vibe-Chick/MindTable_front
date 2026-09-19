@@ -14,13 +14,15 @@ export function AuthProvider({ children }) {
     else localStorage.removeItem(USER_KEY)
   }
 
-  const login = ({ token, user: u }) => {
+  const login = ({ token, refresh, user: u }) => {
     localStorage.setItem('mt_token', token)
+    if (refresh) localStorage.setItem('mt_refresh', refresh)
     setUser(u)
   }
 
   const logout = () => {
     localStorage.removeItem('mt_token')
+    localStorage.removeItem('mt_refresh')
     setUser(null)
   }
 

@@ -1,7 +1,8 @@
-import api, { USE_MOCK } from './api'
+import api, { USE_MOCK, isLive } from './api'
 import { sleep, loadJson, saveJson, isUniversityEmail, guessSchoolFromEmail } from '../utils'
 
 const USERS_KEY = 'mt_mock_users'
+const USER_KEY = 'mt_user'
 const MOCK_CODE = '123456' // mock: 모든 인증 코드는 123456
 
 // ---------- mock helpers ----------
@@ -33,9 +34,14 @@ function newUser(fields) {
 }
 
 // ---------- Google 로그인 (유일한 로그인 수단) ----------
-// 실제 연동: Google Identity Services로 ID 토큰(credential)을 받아 백엔드 /auth/google 에 전달
+// 실제 연동: Google Identity Services로 ID 토큰(credential)을 받아 백엔드 POST /api/auth/google/ 에 전달
+//
+// 백엔드 응답 (MindTable_back accounts/views.py):
+//   { access, refresh, user: { id, email, name, picture, google_id }, created }
+// 프론트 형식으로 매핑:
+//   { token: access, refresh, user: { ...프론트 user 필드 } }
 export async function loginWithGoogle() {
-  if (USE_MOCK) {
+  if (!isLive('auth/google')) {
     await sleep(700)
     let user = getMockUsers().find((u) => u.provider === 'google')
     if (!user) {
@@ -44,8 +50,32 @@ export async function loginWithGoogle() {
     return { token: `mock-${user.id}`, user }
   }
   const credential = await getGoogleCredential()
-  const { data } = await api.post('/auth/google', { credential })
-  return data
+  const { data } = await api.post('/auth/google/', { credential })
+  return {
+    token: data.access,
+    refresh: data.refresh,
+    user: normalizeBackendUser(data.user),
+  }
+}
+
+// 백엔드 user → 프론트 user. 백엔드에 아직 없는 필드(schoolVerified, hasProfile 등)는
+// 같은 이메일로 이 브라우저에 저장돼 있던 값을 이어받고, 없으면 기본값을 쓴다.
+function normalizeBackendUser(u) {
+  const prev = loadJson(USER_KEY)
+  const carry = prev && prev.email === u.email ? prev : {}
+  return newUser({
+    ...carry,
+    id: u.id,
+    email: u.email,
+    name: u.name || carry.name || u.email.split('@')[0],
+    picture: u.picture ?? null,
+    googleId: u.google_id ?? null,
+    schoolVerified: u.school_verified ?? u.schoolVerified ?? carry.schoolVerified ?? false,
+    hasProfile: u.has_profile ?? u.hasProfile ?? carry.hasProfile ?? false,
+    school: u.school ?? carry.school ?? null,
+    major: u.major ?? carry.major ?? null,
+    univEmail: u.univ_email ?? u.univEmail ?? carry.univEmail ?? null,
+  })
 }
 
 function getGoogleCredential() {

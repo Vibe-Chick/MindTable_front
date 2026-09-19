@@ -54,8 +54,21 @@ src/
 
 인증 전용 라우트는 `App.jsx`의 `RequireVerified`로 묶여 있고, 미인증 사용자가 접근하면 `/verify-school?reason=gated`로 안내됩니다.
 
+## 백엔드 연동
+
+`npm run dev`의 Vite 프록시가 `/api/*`를 `http://127.0.0.1:8000`(MindTable_back, Django)으로 전달합니다. CORS 설정 불필요.
+
+`.env`:
+```
+VITE_USE_MOCK=true            # 기본은 mock
+VITE_LIVE_APIS=auth/google    # 여기 적힌 API만 실제 백엔드로 (쉼표로 추가)
+```
+백엔드 API가 완성되는 순서대로 `VITE_LIVE_APIS`에 이름을 추가하면 됩니다. 전부 켜려면 `VITE_USE_MOCK=false`.
+
 ## Google 로그인 연동
 
 `.env`의 `VITE_GOOGLE_CLIENT_ID`에 Google Cloud 콘솔의 OAuth 클라이언트 ID를 넣고 `VITE_USE_MOCK=false`로 두면,
-Google Identity Services로 ID 토큰(credential)을 받아 백엔드 `POST /auth/google { credential }`에 넘깁니다.
+Google Identity Services로 ID 토큰(credential)을 받아 백엔드 `POST /api/auth/google/ { credential }`에 넘깁니다.
+백엔드 응답 `{ access, refresh, user }`는 `authService.js`의 `normalizeBackendUser`가 프론트 user 형식으로 매핑합니다.
+백엔드 `.env`의 `GOOGLE_CLIENT_ID`와 같은 값이어야 합니다.
 Google 콘솔의 승인된 JavaScript 원본에 `http://localhost:3000`을 등록해야 합니다.
