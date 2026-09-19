@@ -66,6 +66,16 @@ VITE_LIVE_APIS=auth/google    # 여기 적힌 API만 실제 백엔드로 (쉼표
 ```
 백엔드 API가 완성되는 순서대로 `VITE_LIVE_APIS`에 이름을 추가하면 됩니다. 전부 켜려면 `VITE_USE_MOCK=false`.
 
+## Web Push 알림
+
+앱을 닫아도 폰/PC 브라우저로 알림이 오는 방식. 마이페이지 → 알림 설정에서 켭니다.
+
+- `public/sw.js` — 푸시 수신 → OS 알림 표시, 탭하면 해당 화면으로 이동
+- `public/manifest.json` — PWA 설정. iPhone은 Safari에서 "홈 화면에 추가"한 뒤에만 푸시 가능 (설정 화면에서 안내)
+- `src/service/pushService.js` — 권한 요청 → 서비스 워커 → `PushManager.subscribe(VAPID 공개키)` → `POST /push/subscribe/`
+- mock 모드에서는 구독 없이 권한만 받고, 매칭 완료·장소 확정·리뷰 요청 시점에 프론트가 직접 OS 알림을 띄워 흐름을 확인할 수 있습니다 (`notifyLocal`)
+- 실서버 전환: `.env`의 `VITE_VAPID_PUBLIC_KEY`에 백엔드가 만든 공개키를 넣고 `VITE_LIVE_APIS`에 `push/subscribe`를 추가
+
 ## Google 로그인 연동
 
 `.env`의 `VITE_GOOGLE_CLIENT_ID`에 Google Cloud 콘솔의 OAuth 클라이언트 ID를 넣고 `VITE_USE_MOCK=false`로 두면,

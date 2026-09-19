@@ -11,6 +11,7 @@ import {
   reserveRestaurant,
   submitPreferences,
 } from '../../service/restaurantService'
+import { notifyLocal } from '../../service/pushService'
 import { useAuth } from '../../store/AuthContext'
 import { useMatch } from '../../store/MatchContext'
 import styles from './Restaurants.module.css'
@@ -41,8 +42,12 @@ function Restaurants() {
       if (state.confirmed && result) {
         cancelled = true
         await reserveRestaurant(match.id, state.confirmed)
-        setRestaurant(result.restaurants.find((r) => r.id === state.confirmed))
+        const picked = result.restaurants.find((r) => r.id === state.confirmed)
+        setRestaurant(picked)
         setStep('confirmed')
+        notifyLocal({ type: 'place_confirmed', title: '📍 식사 장소가 확정됐어요', body: `${picked.name} · 도보 ${picked.walk} — 투표로 확정됐어요`, url: '/restaurants' })
+        // 실서버: 식사 종료 2시간 후 백엔드가 발송. mock은 바로 띄워서 흐름 확인
+        notifyLocal({ type: 'review_request', title: '📝 오늘 식사 어땠어요?', body: '24시간 안에 리뷰를 남기면 프로필이 보정돼요', url: `/review/${match.id}` })
       }
     }
     check()

@@ -3,6 +3,9 @@ import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './store/AuthContext'
 import { MatchProvider } from './store/MatchContext'
+import { registerServiceWorker } from './service/pushService'
+
+registerServiceWorker()
 
 createRoot(document.getElementById('root')).render(
   <AuthProvider>

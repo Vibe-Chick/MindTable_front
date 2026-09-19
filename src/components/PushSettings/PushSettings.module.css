@@ -1,0 +1,139 @@
+.section {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 18px 0 10px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.pref,
+.prefDim {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.prefDim {
+  opacity: 0.45;
+}
+
+.pref span,
+.prefDim span {
+  display: flex;
+  flex-direction: column;
+}
+
+.pref strong,
+.prefDim strong {
+  font-size: 14px;
+}
+
+.pref small,
+.prefDim small {
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.toggle,
+.toggleOn {
+  flex: none;
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  border: none;
+  background: var(--border);
+  position: relative;
+  padding: 0;
+  transition: background 0.15s ease;
+}
+
+.toggle::after,
+.toggleOn::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: left 0.15s ease;
+}
+
+.toggleOn {
+  background: var(--coral);
+}
+
+.toggleOn::after {
+  left: 21px;
+}
+
+.toggle:disabled,
+.toggleOn:disabled {
+  opacity: 0.5;
+}
+
+/* iOS 안내 시트 */
+.dim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.sheet {
+  width: 100%;
+  max-width: 430px;
+  background: var(--surface);
+  border-radius: 22px 22px 0 0;
+  padding: 20px 22px 30px;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.18);
+}
+
+.sheet h4 {
+  margin: 0 0 6px;
+  font-size: 17px;
+}
+
+.sheet p {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: var(--ink-muted);
+  line-height: 1.5;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.n {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--coral);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}

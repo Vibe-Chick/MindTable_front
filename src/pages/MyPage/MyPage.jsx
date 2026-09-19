@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout/Layout'
+import PushSettings from '../../components/PushSettings/PushSettings'
 import { Button, Card, Field, Heading, Input, Notice } from '../../components/ui/ui'
 import { updateProfile } from '../../service/authService'
 import { getMatchHistory } from '../../service/matchService'
@@ -94,6 +95,8 @@ function MyPage() {
               </div>
             )}
           </Card>
+
+          <PushSettings />
 
           <h3 className={styles.section}>개인 설정</h3>
           <Card className={styles.prefs}>

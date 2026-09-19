@@ -1,0 +1,13 @@
+{
+  "name": "MindTable",
+  "short_name": "MindTable",
+  "description": "다른 학교 · 다른 전공 대학생을 AI가 골라 밥 약속으로 이어주는 매칭 서비스",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff9f3",
+  "theme_color": "#ff6b52",
+  "lang": "ko",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

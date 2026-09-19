@@ -32,6 +32,7 @@ globals==17.12.0
 # VITE_USE_MOCK=true              true면 백엔드 없이 mock 데이터로 동작
 # VITE_LIVE_APIS=auth/google      mock 모드에서도 실제 백엔드로 보낼 API 목록 (쉼표 구분)
 # VITE_GOOGLE_CLIENT_ID=          Google Cloud 콘솔 OAuth 클라이언트 ID (mock=false일 때 필요)
+# VITE_VAPID_PUBLIC_KEY=          Web Push VAPID 공개키 (백엔드가 생성해서 공유, mock 모드에선 불필요)
 
 # --- 백엔드 (MindTable_back, Django, http://127.0.0.1:8000 — Vite 프록시로 /api 전달) ---
 # POST  /auth/google/             { credential }  → { access, refresh, user{id,email,name,picture,google_id}, created }   [연동됨]
@@ -51,3 +52,9 @@ globals==17.12.0
 # POST  /match/:id/reserve        { restaurantId }
 # GET   /match/:id/review/        → { submitted, result }                          (식사 후 리뷰 상태)
 # POST  /match/:id/review/        { answers }  → { deltas, before, after, diversityPref, summary, driftAlert }   (보정)
+# --- Web Push (백엔드: pywebpush + VAPID 키 필요) ---
+# POST   /push/subscribe/         PushSubscription.toJSON() = { endpoint, keys: { p256dh, auth } }  → 사용자·기기별 저장
+# DELETE /push/subscribe/         { endpoint }
+# PATCH  /push/preferences/       { enabled, match_done, place_confirmed, review_request }
+#   발송 시점: 매칭 완료 · 투표로 장소 확정 · 식사 2시간 후 리뷰 요청
+#   payload: { title, body, url, tag? }  → public/sw.js 가 OS 알림으로 표시, 탭하면 url 로 이동
