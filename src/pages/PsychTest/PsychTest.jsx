@@ -36,7 +36,7 @@ function PsychTest() {
 
   // i 번째 질문 생성 (없을 때만). 진입 시 · 다음 문항으로 넘어갈 때 · 다시 테스트하기
   const fetchQuestion = (i) =>
-    generateQuestion(i)
+    generateQuestion()
       .then((title) => {
         setQuestions((prev) => {
           const next = [...prev]
@@ -84,11 +84,7 @@ function PsychTest() {
     setPhase('analyzing')
     try {
       // 기본 답변은 check-answer 때 백엔드가 저장 → 여기선 user_id(이메일)와 꼬리 질문만 보낸다
-      const result = await analyzeAnswers(
-        user.email,
-        allFollowUps,
-        questions.map((x) => ({ question: x.title, answer: answers[x.id] })), // mock 계산용
-      )
+      const result = await analyzeAnswers(user.email, allFollowUps)
       // 추출 결과가 유효하지 않으면 부족한 문항으로 돌아가 재요청 (insufficient: 문항 index 또는 id)
       if (!result.valid) {
         const ids = (result.insufficient ?? []).map((v) => (typeof v === 'number' ? `q${v + 1}` : v))
