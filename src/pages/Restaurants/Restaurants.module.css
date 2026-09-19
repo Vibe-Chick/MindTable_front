@@ -88,3 +88,215 @@
   align-items: center;
   justify-content: center;
 }
+
+/* ---------- 조건 입력 ---------- */
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-muted);
+  margin: 4px 0 8px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.chip,
+.chipOn {
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.chipOn {
+  border-color: var(--coral);
+  background: var(--coral-tint);
+  color: var(--coral-ink);
+}
+
+.spinner {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 5px solid var(--coral-tint);
+  border-top-color: var(--coral);
+  animation: spin 0.9s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- 리스트 / 지도 탭 ---------- */
+.tabs {
+  display: flex;
+  background: var(--surface-soft);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 12px;
+}
+
+.tab,
+.tabOn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 9px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-muted);
+}
+
+.tabOn {
+  background: #fff;
+  color: var(--coral-ink);
+  box-shadow: 0 1px 4px var(--shadow);
+}
+
+.item:disabled,
+.itemOn:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.noDiscount {
+  display: inline-block;
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--border);
+  color: var(--ink-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.voteCount {
+  margin-left: auto;
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--coral-ink);
+  background: var(--coral-tint);
+  border-radius: 999px;
+  padding: 4px 9px;
+  white-space: nowrap;
+}
+
+.voteStatus {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--ink-muted);
+  text-align: center;
+}
+
+/* ---------- 간이 지도 ---------- */
+.map {
+  position: relative;
+  height: 200px;
+  border-radius: 16px;
+  background: #eef2f6;
+  border: 1px solid var(--border);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.mapGrid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(58, 46, 42, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(58, 46, 42, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.mapMe {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #4285f4;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.25);
+  transform: translate(-50%, -50%);
+}
+
+.pin,
+.pinOn {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.pin::before,
+.pinOn::before {
+  content: '';
+  display: block;
+  width: 16px;
+  height: 16px;
+  margin: 0 auto;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: var(--ink-muted);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.pinOn::before {
+  background: var(--coral);
+  width: 20px;
+  height: 20px;
+}
+
+.pinLabel {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  background: #fff;
+  border-radius: 6px;
+  padding: 2px 6px;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.pinOn .pinLabel {
+  color: var(--coral-ink);
+}
+
+.mapNote {
+  position: absolute;
+  right: 8px;
+  bottom: 6px;
+  font-size: 10px;
+  color: var(--ink-muted);
+}
+
+/* ---------- 확정 ---------- */
+.members {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.memberChip {
+  font-size: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 10px;
+}

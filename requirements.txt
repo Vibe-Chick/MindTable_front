@@ -44,7 +44,10 @@ globals==17.12.0
 # POST  /match/request            { userId }  → { matchId }
 # GET   /match/:id                → { status, result }
 # GET   /users/:id/matches        → history[]
-# GET   /match/:id/restaurants    → restaurants[]
+# POST  /match/:id/restaurants/preferences/  { location, customLocation, price, avoid }  → { submitted, total, common }
+# GET   /match/:id/restaurants/   ?location&price&avoid  → { source: 'partner'|'map', restaurants[] }   (제휴 없으면 지도 API fallback)
+# GET   /match/:id/vote/          → { votes: {userId: restaurantId}, confirmed: restaurantId|null }
+# POST  /match/:id/vote/          { restaurantId }  → 위와 동일 (과반이면 confirmed)
 # POST  /match/:id/reserve        { restaurantId }
 # GET   /match/:id/review/        → { submitted, result }                          (식사 후 리뷰 상태)
 # POST  /match/:id/review/        { answers }  → { deltas, before, after, diversityPref, summary, driftAlert }   (보정)
