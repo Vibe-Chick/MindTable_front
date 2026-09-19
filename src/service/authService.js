@@ -128,10 +128,11 @@ function loadGoogleSdk() {
 }
 
 // ---------- 학교 인증 (선택) — 대학 이메일 코드 인증 ----------
-// 백엔드(MindTable_back accounts):
-//   POST /api/auth/school/send-code/    { school_email }            토큰 필요 → 인증 메일 발송
-//   POST /api/auth/school/verify-code/  { school_email, code, school_name }  토큰 필요 → SchoolVerification 생성
+// 백엔드(MindTable_back accounts) — Notion API 명세서 기준:
+//   POST /api/auth/school/send-code/    { school_email }  → { message }                                  토큰 필요
+//   POST /api/auth/school/verify-code/  { school_email, code }  → { message, school_email, is_school_verified }   토큰 필요
 // 사용자 식별은 Authorization 헤더의 JWT로 하므로 userId 는 보내지 않는다.
+// 학교명·전공은 백엔드가 아직 받지 않으므로 프론트(localStorage user)에만 보관한다.
 export async function requestSchoolCode(userId, univEmail) {
   if (!isUniversityEmail(univEmail)) {
     throw new Error('대학 이메일(.ac.kr / .edu)만 인증할 수 있어')
@@ -155,17 +156,16 @@ export async function verifySchoolCode(userId, { univEmail, code, school, major 
     const user = getMockUsers().find((u) => u.id === userId)
     return saveMockUser({ ...user, schoolVerified: true, univEmail, school, major })
   }
-  const { data } = await api.post('/auth/school/verify-code/', { school_email: univEmail, code, school_name: school, major })
-  // 응답 형식이 확정되기 전이라 있는 필드만 쓰고, 나머지는 입력값으로 채운다
-  const v = data?.school_verification ?? data ?? {}
+  const { data } = await api.post('/auth/school/verify-code/', { school_email: univEmail, code })
+  if (data?.is_school_verified === false) throw new Error(data?.message || '학교 인증에 실패했어요')
   const current = loadJson(USER_KEY) ?? {}
   return {
     ...current,
     schoolVerified: true,
-    univEmail: v.school_email ?? univEmail,
-    school: v.school_name || school,
-    major: v.major ?? major,
-    schoolVerifiedAt: v.verified_at ?? new Date().toISOString(),
+    univEmail: data?.school_email ?? univEmail,
+    school,
+    major,
+    schoolVerifiedAt: new Date().toISOString(),
   }
 }
 
