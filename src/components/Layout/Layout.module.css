@@ -16,10 +16,9 @@
 }
 
 .navSide {
-  min-width: 44px;
+  width: 44px;
   display: flex;
   align-items: center;
-  gap: 8px;
 }
 
 .navSide:last-child {

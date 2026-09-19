@@ -3,7 +3,6 @@ import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import Layout from '../../components/Layout/Layout'
 import { Button, Field, Heading, Input, Notice } from '../../components/ui/ui'
 import { requestSchoolCode, verifySchoolCode } from '../../service/authService'
-import { pushLocalNotification } from '../../service/notificationService'
 import { useAuth } from '../../store/AuthContext'
 import { nextRouteFor } from '../../utils'
 import styles from './VerifySchool.module.css'
@@ -51,7 +50,6 @@ function VerifySchool() {
       if (!major.trim()) throw new Error('전공을 입력해줘')
       const updated = await verifySchoolCode(user.id, { univEmail, code, school: school.trim(), major: major.trim() })
       updateUser(updated)
-      pushLocalNotification({ type: 'school_verified', body: `${updated.school} · ${updated.major} — 이제 매칭을 신청할 수 있어요` })
       setStep(3)
     })
 

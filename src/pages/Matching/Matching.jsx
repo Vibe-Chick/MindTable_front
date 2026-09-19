@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout/Layout'
 import { Button, Heading, Notice } from '../../components/ui/ui'
 import { getMatchResult, requestMatch } from '../../service/matchService'
-import { pushLocalNotification } from '../../service/notificationService'
 import { useAuth } from '../../store/AuthContext'
 import { useMatch } from '../../store/MatchContext'
 import styles from './Matching.module.css'
@@ -35,11 +34,6 @@ function Matching() {
         const { result } = await getMatchResult(matchId)
         if (cancelled) return
         setMatch(result)
-        pushLocalNotification({
-          type: 'match_done',
-          matchId: result.id,
-          body: `${result.members.map((m) => m.name).join(' · ')} — 다른 전공 · 다른 학교 조합이에요`,
-        })
         setDoneSteps(STEPS.length)
         setReady(true)
       } catch (err) {
