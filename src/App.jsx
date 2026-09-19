@@ -2,9 +2,6 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom
 import { useAuth } from './store/AuthContext'
 import Landing from './pages/Landing/Landing'
 import Login from './pages/Login/Login'
-import Signup from './pages/Signup/Signup'
-import FindPassword from './pages/FindPassword/FindPassword'
-import KakaoCallback from './pages/KakaoCallback/KakaoCallback'
 import VerifySchool from './pages/VerifySchool/VerifySchool'
 import Home from './pages/Home/Home'
 import PsychTest from './pages/PsychTest/PsychTest'
@@ -20,6 +17,12 @@ function RequireAuth() {
   return isLoggedIn ? <Outlet /> : <Navigate to="/login" replace />
 }
 
+// 학교 인증한 사용자만 쓸 수 있는 라우트 (매칭 · 식당 · 구독)
+function RequireVerified() {
+  const { user } = useAuth()
+  return user.schoolVerified ? <Outlet /> : <Navigate to="/verify-school?reason=gated" replace />
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -27,20 +30,21 @@ function App() {
         {/* 로그인 플로우 */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/find-password" element={<FindPassword />} />
-        <Route path="/oauth/kakao" element={<KakaoCallback />} />
 
-        {/* 인증 후 */}
+        {/* 로그인만 하면 이용 가능 */}
         <Route element={<RequireAuth />}>
-          <Route path="/verify-school" element={<VerifySchool />} />
           <Route path="/home" element={<Home />} />
           <Route path="/test" element={<PsychTest />} />
-          <Route path="/matching" element={<Matching />} />
-          <Route path="/matching/result" element={<MatchResult />} />
-          <Route path="/restaurants" element={<Restaurants />} />
-          <Route path="/subscription" element={<Subscription />} />
           <Route path="/mypage" element={<MyPage />} />
+          <Route path="/verify-school" element={<VerifySchool />} />
+
+          {/* 학교 인증한 사용자만 이용 가능 */}
+          <Route element={<RequireVerified />}>
+            <Route path="/matching" element={<Matching />} />
+            <Route path="/matching/result" element={<MatchResult />} />
+            <Route path="/restaurants" element={<Restaurants />} />
+            <Route path="/subscription" element={<Subscription />} />
+          </Route>
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
