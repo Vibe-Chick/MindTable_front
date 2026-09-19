@@ -22,27 +22,34 @@ function Home() {
     <Layout title="MindTable" right={mypageLink}>
       <Heading sub={user.schoolVerified ? `🎓 ${user.school} · ${user.major}` : `${user.email} · 학교 인증 전`}>{`${user.name}님,\n오늘 누구랑 밥 먹을까?`}</Heading>
 
+      {/* 테스트 전: 코랄 히어로 카드로 테스트를 가장 앞에. 나머지 카드는 흐리게 */}
       {!user.hasProfile && (
-        <Card className={styles.warn}>
-          <strong>성향 테스트를 아직 안 했어요</strong>
-          <p>매칭을 받으려면 3개 질문에 먼저 답해줘.</p>
-          <Button variant="secondary" onClick={() => navigate('/test')}>
-            테스트 하러 가기
-          </Button>
-        </Card>
+        <div className={styles.hero}>
+          <strong>{'먼저 성향 테스트부터!\n3개 질문, 2분이면 끝나요'}</strong>
+          <p>AI가 성향을 읽고 딱 맞는 사람을 골라줘요</p>
+          <button type="button" className={styles.heroBtn} onClick={() => navigate('/test')}>
+            테스트 시작하기 →
+          </button>
+        </div>
       )}
 
-      <Card className={styles.matchCard}>
+      <Card className={[styles.matchCard, user.hasProfile ? '' : styles.dim].join(' ')}>
         <div className={styles.matchIcon}>🍽️</div>
         <strong>이번 달 무료 매칭 1회</strong>
-        <p>{user.schoolVerified ? '다른 학교 · 같은 학교 대학생과 AI가 이어줘요' : '다른 학교 · 다른 전공 3명과 AI가 이어줘요'}</p>
+        <p>
+          {!user.hasProfile
+            ? '테스트가 끝나면 열려요'
+            : user.schoolVerified
+              ? '다른 학교 · 같은 학교 대학생과 AI가 이어줘요'
+              : '다른 학교 · 다른 전공 3명과 AI가 이어줘요'}
+        </p>
         <Button onClick={() => navigate('/matching')} disabled={!user.hasProfile}>
           매칭 신청하기
         </Button>
       </Card>
 
       {!user.schoolVerified && (
-        <Card className={styles.lockedCard}>
+        <Card className={[styles.lockedCard, user.hasProfile ? '' : styles.dim].join(' ')}>
           <div className={styles.matchIcon}>🎓</div>
           <strong>학교 인증하면 같은 학교 친구도</strong>
           <p>인증 없이도 다른 학교 학생과 매칭돼요. 인증하면 같은 학교 사람과도 만날 수 있어요.</p>
