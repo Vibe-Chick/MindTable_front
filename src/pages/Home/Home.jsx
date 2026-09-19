@@ -19,9 +19,19 @@ function Home() {
 
   return (
     <Layout title="MindTable" right={mypageLink}>
-      <Heading sub={`${user.school} · ${user.major}`}>{`${user.name}님,\n오늘 누구랑 밥 먹을까?`}</Heading>
+      <Heading sub={user.schoolVerified ? `🎓 ${user.school} · ${user.major}` : '학교 인증 전'}>{`${user.name}님,\n오늘 누구랑 밥 먹을까?`}</Heading>
 
-      {!user.hasProfile && (
+      {!user.schoolVerified && (
+        <Card className={styles.warn}>
+          <strong>학교 인증이 필요해요</strong>
+          <p>대학 이메일로 인증해야 매칭을 받을 수 있어.</p>
+          <Button variant="secondary" onClick={() => navigate('/verify-school')}>
+            학교 인증 하러 가기
+          </Button>
+        </Card>
+      )}
+
+      {user.schoolVerified && !user.hasProfile && (
         <Card className={styles.warn}>
           <strong>성향 테스트를 아직 안 했어요</strong>
           <p>매칭을 받으려면 4개 질문에 먼저 답해줘.</p>
@@ -35,7 +45,7 @@ function Home() {
         <div className={styles.matchIcon}>🍽️</div>
         <strong>이번 달 무료 매칭 1회</strong>
         <p>다른 학교 · 다른 전공 3명과 AI가 이어줘요</p>
-        <Button onClick={() => navigate('/matching')} disabled={!user.hasProfile}>
+        <Button onClick={() => navigate('/matching')} disabled={!user.schoolVerified || !user.hasProfile}>
           매칭 신청하기
         </Button>
       </Card>

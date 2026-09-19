@@ -15,7 +15,7 @@ function MyPage() {
   const { user, updateUser, logout } = useAuth()
   const { setMatch } = useMatch()
   const [tab, setTab] = useState('account') // account | stats
-  const [form, setForm] = useState({ name: user.name, school: user.school, major: user.major })
+  const [form, setForm] = useState({ name: user.name })
   const [prefs, setPrefs] = useState({ autoMatch: false, sameSchoolFilter: false })
   const [saved, setSaved] = useState(false)
   const [history, setHistory] = useState([])
@@ -46,9 +46,11 @@ function MyPage() {
         <div>
           <div className={styles.name}>{user.name}</div>
           <div className={styles.meta}>
-            {user.school} · {user.major}
+            {user.schoolVerified ? `🎓 ${user.school} · ${user.major}` : '학교 인증 전'}
           </div>
-          <div className={styles.email}>{user.email}</div>
+          <div className={styles.email}>
+            {user.provider === 'kakao' ? '💬 카카오 계정' : user.email}
+          </div>
         </div>
       </div>
 
@@ -68,17 +70,32 @@ function MyPage() {
           <Field label="이름">
             <Input name="name" value={form.name} onChange={onChange} />
           </Field>
-          <div className={styles.row}>
-            <Field label="학교">
-              <Input name="school" value={form.school} onChange={onChange} />
-            </Field>
-            <Field label="전공">
-              <Input name="major" value={form.major} onChange={onChange} />
-            </Field>
-          </div>
           <Button variant="secondary" onClick={save}>
             정보 저장
           </Button>
+
+          <h3 className={styles.section}>학교 인증</h3>
+          <Card className={styles.prefs}>
+            {user.schoolVerified ? (
+              <div className={styles.pref}>
+                <span>
+                  <strong>{user.school} · {user.major}</strong>
+                  <small>{user.univEmail} 로 인증됨</small>
+                </span>
+                <span className={styles.verified}>인증 완료</span>
+              </div>
+            ) : (
+              <div className={styles.pref}>
+                <span>
+                  <strong>아직 인증 전이에요</strong>
+                  <small>대학 이메일로 인증해야 매칭을 받을 수 있어</small>
+                </span>
+                <Button variant="secondary" full={false} onClick={() => navigate('/verify-school')}>
+                  인증하기
+                </Button>
+              </div>
+            )}
+          </Card>
 
           <h3 className={styles.section}>개인 설정</h3>
           <Card className={styles.prefs}>
