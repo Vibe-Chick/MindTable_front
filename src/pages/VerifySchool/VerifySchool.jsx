@@ -4,7 +4,7 @@ import Layout from '../../components/Layout/Layout'
 import { Button, Field, Heading, Input, Notice } from '../../components/ui/ui'
 import { requestSchoolCode, verifySchoolCode } from '../../service/authService'
 import { useAuth } from '../../store/AuthContext'
-import { VERIFIED_ONLY_FEATURES, nextRouteFor } from '../../utils'
+import { nextRouteFor } from '../../utils'
 import styles from './VerifySchool.module.css'
 
 // 학교 인증(선택): 대학 이메일 입력 → 인증 코드 확인 → 학교·전공 확정
@@ -64,11 +64,6 @@ function VerifySchool() {
           <div className={styles.who}>
             {user.email} · {user.name}
           </div>
-          <ul className={styles.features}>
-            {VERIFIED_ONLY_FEATURES.map((f) => (
-              <li key={f}>🔓 {f}</li>
-            ))}
-          </ul>
           <Field label="대학 이메일" hint=".ac.kr 또는 .edu 로 끝나는 학교 메일">
             <Input
               type="email"

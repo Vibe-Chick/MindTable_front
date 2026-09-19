@@ -29,17 +29,3 @@
   align-items: center;
   justify-content: center;
 }
-
-.features {
-  list-style: none;
-  padding: 12px 14px;
-  margin: 0 0 18px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-size: 13px;
-  color: var(--ink-muted);
-}
