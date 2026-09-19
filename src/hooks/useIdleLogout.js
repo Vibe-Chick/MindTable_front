@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 
 const LAST_ACTIVE_KEY = 'mt_last_active'
+// 기본 30분. 테스트할 땐 .env 에 VITE_IDLE_MINUTES=1 처럼 줄여서 확인
+const DEFAULT_IDLE_MS = Number(import.meta.env.VITE_IDLE_MINUTES || 30) * 60 * 1000
 // 사용자가 뭔가 하고 있다고 볼 이벤트들
 const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click']
 
@@ -8,7 +10,7 @@ const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scr
 // 동작이 있을 때마다 타이머를 처음부터 다시 잰다.
 // 마지막 활동 시각을 localStorage 에 남겨서, 탭을 닫았다가 30분 뒤에 다시 열어도 로그아웃된다.
 // (백엔드 access 토큰 수명과는 별개 — 그쪽 만료는 api.js 의 refresh 갱신이 처리)
-export function useIdleLogout(enabled, onIdle, idleMs = 30 * 60 * 1000) {
+export function useIdleLogout(enabled, onIdle, idleMs = DEFAULT_IDLE_MS) {
   useEffect(() => {
     if (!enabled) return undefined
 

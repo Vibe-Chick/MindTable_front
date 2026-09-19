@@ -33,6 +33,7 @@ globals==17.12.0
 # VITE_USE_MOCK=true              true면 백엔드 없이 mock 데이터로 동작
 # VITE_LIVE_APIS=auth/google      mock 모드에서도 실제 백엔드로 보낼 API 목록 (쉼표 구분)
 # VITE_GOOGLE_CLIENT_ID=          Google Cloud 콘솔 OAuth 클라이언트 ID (mock=false일 때 필요)
+# VITE_IDLE_MINUTES=30           이 시간 동안 활동 없으면 자동 로그아웃 (기본 30, 테스트 시 1)
 # VITE_VAPID_PUBLIC_KEY=          Web Push VAPID 공개키 (백엔드가 생성해서 공유, mock 모드에선 불필요)
 
 # --- 백엔드 (MindTable_back, Django + DRF + SimpleJWT, http://127.0.0.1:8000 — Vite 프록시로 /api 전달) ---
