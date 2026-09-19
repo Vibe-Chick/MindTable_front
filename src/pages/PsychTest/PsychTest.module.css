@@ -147,3 +147,24 @@
 .followUpArea {
   min-height: 110px;
 }
+
+/* ---------- 질문 본문 (LLM 이 만든 긴 문장이라 제목(Heading)보다 가볍게) ---------- */
+.questionWrap {
+  margin: 8px 0 22px;
+}
+
+.question {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+  color: rgba(58, 46, 42, 0.82);
+  word-break: keep-all; /* 단어 중간에서 줄이 끊기지 않게 */
+}
+
+.questionHint {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--ink-muted);
+}

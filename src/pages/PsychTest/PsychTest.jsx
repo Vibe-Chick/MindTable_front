@@ -253,7 +253,10 @@ function PsychTest() {
             <span className={styles.prevLabel}>내 답변</span>
             {current}
           </div>
-          <Heading sub="AI가 한 가지만 더 물어볼게. 짧게 답해도 괜찮아">{followUp.question}</Heading>
+          <div className={styles.questionWrap}>
+            <p className={styles.question}>{followUp.question}</p>
+            <p className={styles.questionHint}>AI가 한 가지만 더 물어볼게. 짧게 답해도 괜찮아</p>
+          </div>
           <Textarea
             value={followUpAnswer}
             onChange={(e) => {
@@ -266,7 +269,10 @@ function PsychTest() {
         </>
       ) : (
         <>
-          <Heading sub={QUESTION_HINT}>{q.title}</Heading>
+          <div className={styles.questionWrap}>
+            <p className={styles.question}>{q.title}</p>
+            <p className={styles.questionHint}>{QUESTION_HINT}</p>
+          </div>
 
           {q.type === 'open' ? (
             <Textarea
