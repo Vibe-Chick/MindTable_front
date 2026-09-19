@@ -35,6 +35,9 @@ api.interceptors.response.use(
       data?.error || data?.detail || data?.message || (err.code === 'ECONNABORTED' ? '서버 응답이 없어요' : null)
     if (message) err.message = message
     else if (!err.response) err.message = '서버에 연결할 수 없어요. 백엔드가 켜져 있는지 확인해줘'
+    else if (err.response.status === 404) err.message = `서버에 아직 없는 API예요 (404: ${err.config?.url})`
+    else if (err.response.status === 401) err.message = '로그인이 만료됐어요. 다시 로그인해줘'
+    else if (err.response.status >= 500) err.message = '서버 오류가 났어요. 잠시 후 다시 시도해줘'
     return Promise.reject(err)
   },
 )
