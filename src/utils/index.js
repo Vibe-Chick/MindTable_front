@@ -48,17 +48,17 @@ export function guessSchoolFromEmail(email) {
   return hit ? SCHOOL_DOMAINS[hit] : null
 }
 
-// 로그인/인증 상태에 따라 다음에 가야 할 화면
+// 로그인 후 다음에 가야 할 화면. 학교 인증은 선택이라 여기서 강제하지 않는다.
 export function nextRouteFor(user) {
   if (!user) return '/login'
-  if (!user.schoolVerified) return '/verify-school'
   if (!user.hasProfile) return '/test'
   return '/home'
 }
 
-export function isValidPassword(password) {
-  return password.length >= 8 && /[A-Za-z]/.test(password) && /\d/.test(password)
-}
+// 학교 인증한 사용자만 쓸 수 있는 기능 (안내 문구용)
+export const VERIFIED_ONLY_FEATURES = ['식사 매칭 신청', '매칭 결과 · 아이스브레이커', '제휴 식당 추천 · 예약', '학기 구독']
+export const FREE_FEATURES = ['AI 성향 테스트 · 결과 보기', '마이페이지 · 통계']
+
 
 export function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))

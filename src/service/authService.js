@@ -18,16 +18,11 @@ function saveMockUser(user) {
   return user
 }
 
-function publicUser(user) {
-  const { password, ...rest } = user
-  return rest
-}
-
 function newUser(fields) {
   return {
     id: Date.now(),
-    provider: 'email', // 'email' | 'kakao'
-    schoolVerified: false,
+    provider: 'google',
+    schoolVerified: false, // 학교 인증 여부 — 매칭/식당/구독은 인증한 사용자만
     univEmail: null,
     school: null,
     major: null,
@@ -37,70 +32,53 @@ function newUser(fields) {
   }
 }
 
-// ---------- 이메일 회원가입 ----------
-export async function signup({ email, password, name }) {
-  if (USE_MOCK) {
-    await sleep(500)
-    if (getMockUsers().some((u) => u.email === email)) {
-      throw new Error('이미 가입된 이메일이에요')
-    }
-    return publicUser(saveMockUser(newUser({ email, password, name })))
-  }
-  const { data } = await api.post('/auth/signup', { email, password, name })
-  return data
-}
-
-// ---------- 이메일 로그인 ----------
-export async function login({ email, password }) {
-  if (USE_MOCK) {
-    await sleep(500)
-    const user = getMockUsers().find((u) => u.email === email && u.password === password)
-    if (!user) throw new Error('아이디 또는 비밀번호가 올바르지 않아요')
-    return { token: `mock-${user.id}`, user: publicUser(user) }
-  }
-  const { data } = await api.post('/auth/login', { email, password })
-  return data
-}
-
-// ---------- 카카오 로그인 ----------
-// 실제 연동: 카카오 SDK로 인가 코드를 받아 /oauth/kakao 로 리다이렉트 → 백엔드가 토큰 교환
-export async function loginWithKakao() {
+// ---------- Google 로그인 (유일한 로그인 수단) ----------
+// 실제 연동: Google Identity Services로 ID 토큰(credential)을 받아 백엔드 /auth/google 에 전달
+export async function loginWithGoogle() {
   if (USE_MOCK) {
     await sleep(700)
-    let user = getMockUsers().find((u) => u.provider === 'kakao')
+    let user = getMockUsers().find((u) => u.provider === 'google')
     if (!user) {
-      user = saveMockUser(newUser({ provider: 'kakao', email: 'kakao_user@kakao.local', name: '카카오 사용자' }))
+      user = saveMockUser(newUser({ email: 'jaebin@gmail.com', name: '이재빈' }))
     }
-    return { token: `mock-${user.id}`, user: publicUser(user) }
+    return { token: `mock-${user.id}`, user }
   }
-  await loadKakaoSdk()
-  window.Kakao.Auth.authorize({ redirectUri: `${window.location.origin}/oauth/kakao` })
-  return new Promise(() => {}) // 페이지가 카카오로 이동하므로 resolve되지 않음
-}
-
-// 카카오 리다이렉트 콜백에서 인가 코드를 백엔드로 전달
-export async function exchangeKakaoCode(code) {
-  const { data } = await api.post('/auth/kakao', { code })
+  const credential = await getGoogleCredential()
+  const { data } = await api.post('/auth/google', { credential })
   return data
 }
 
-function loadKakaoSdk() {
-  const key = import.meta.env.VITE_KAKAO_JS_KEY
-  if (!key) throw new Error('카카오 앱 키(VITE_KAKAO_JS_KEY)가 설정되지 않았어요')
-  if (window.Kakao?.isInitialized()) return Promise.resolve()
+function getGoogleCredential() {
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+  if (!clientId) throw new Error('Google 클라이언트 ID(VITE_GOOGLE_CLIENT_ID)가 설정되지 않았어요')
+
+  return loadGoogleSdk().then(
+    () =>
+      new Promise((resolve, reject) => {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (res) => (res.credential ? resolve(res.credential) : reject(new Error('Google 로그인이 취소됐어요'))),
+        })
+        window.google.accounts.id.prompt((n) => {
+          if (n.isNotDisplayed() || n.isSkippedMoment()) reject(new Error('Google 로그인 창을 열 수 없어요. 팝업 차단을 확인해줘'))
+        })
+      }),
+  )
+}
+
+function loadGoogleSdk() {
+  if (window.google?.accounts?.id) return Promise.resolve()
   return new Promise((resolve, reject) => {
     const script = document.createElement('script')
-    script.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js'
-    script.onload = () => {
-      window.Kakao.init(key)
-      resolve()
-    }
-    script.onerror = () => reject(new Error('카카오 SDK를 불러오지 못했어요'))
+    script.src = 'https://accounts.google.com/gsi/client'
+    script.async = true
+    script.onload = resolve
+    script.onerror = () => reject(new Error('Google SDK를 불러오지 못했어요'))
     document.head.appendChild(script)
   })
 }
 
-// ---------- 학교 인증 (대학 이메일) ----------
+// ---------- 학교 인증 (선택) — 대학 이메일 코드 인증 ----------
 export async function requestSchoolCode(userId, univEmail) {
   if (!isUniversityEmail(univEmail)) {
     throw new Error('대학 이메일(.ac.kr / .edu)만 인증할 수 있어')
@@ -121,43 +99,9 @@ export async function verifySchoolCode(userId, { univEmail, code, school, major 
     await sleep(500)
     if (code !== MOCK_CODE) throw new Error('인증 코드가 일치하지 않아요')
     const user = getMockUsers().find((u) => u.id === userId)
-    return publicUser(saveMockUser({ ...user, schoolVerified: true, univEmail, school, major }))
+    return saveMockUser({ ...user, schoolVerified: true, univEmail, school, major })
   }
   const { data } = await api.post('/auth/school/verify', { userId, univEmail, code, school, major })
-  return data
-}
-
-// ---------- 비밀번호 찾기 ----------
-export async function requestPasswordCode(email) {
-  if (USE_MOCK) {
-    await sleep(500)
-    const user = getMockUsers().find((u) => u.email === email)
-    if (!user) throw new Error('가입되지 않은 이메일이에요')
-    if (user.provider === 'kakao') throw new Error('카카오로 가입한 계정이에요. 카카오 로그인을 이용해줘')
-    return { ok: true }
-  }
-  const { data } = await api.post('/auth/password/code', { email })
-  return data
-}
-
-export async function verifyPasswordCode(email, code) {
-  if (USE_MOCK) {
-    await sleep(400)
-    if (code !== MOCK_CODE) throw new Error('인증 코드가 일치하지 않아요')
-    return { ok: true }
-  }
-  const { data } = await api.post('/auth/password/verify', { email, code })
-  return data
-}
-
-export async function resetPassword(email, newPassword) {
-  if (USE_MOCK) {
-    await sleep(400)
-    const user = getMockUsers().find((u) => u.email === email)
-    saveMockUser({ ...user, password: newPassword })
-    return { ok: true }
-  }
-  const { data } = await api.post('/auth/password/reset', { email, newPassword })
   return data
 }
 
@@ -166,7 +110,7 @@ export async function updateProfile(userId, patch) {
   if (USE_MOCK) {
     await sleep(300)
     const user = getMockUsers().find((u) => u.id === userId)
-    return publicUser(saveMockUser({ ...user, ...patch }))
+    return saveMockUser({ ...user, ...patch })
   }
   const { data } = await api.patch(`/users/${userId}`, patch)
   return data
