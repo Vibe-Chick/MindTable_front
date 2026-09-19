@@ -1,0 +1,18 @@
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+.links {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.links a {
+  color: var(--coral-ink);
+  font-weight: 600;
+}
