@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout/Layout'
 import { Button, Heading, Notice, Textarea } from '../../components/ui/ui'
-import { QUESTIONS, analyzeAnswers, checkAnswerQuality, saveProfileVector, validateAnswers } from '../../service/testService'
+import { analyzeAnswers, checkAnswerQuality, generateQuestions, saveProfileVector, validateAnswers } from '../../service/testService'
 import { useAuth } from '../../store/AuthContext'
 import { useMatch } from '../../store/MatchContext'
 import { updateProfile } from '../../service/authService'
@@ -16,31 +16,59 @@ const TRAIT_LABEL = {
   neuroticism: '신경성',
 }
 
-// 심리 테스트: 질문 → 답변 입력 → 모든 답변 완료? → AI 전송 → 추출 결과 유효? → 프로필 저장
+// 심리 테스트: 질문 생성 → 답변 입력 → 검증(애매하면 꼬리 질문) → 모든 답변 완료? → AI 전송 → 추출 결과 유효? → 프로필 저장
 function PsychTest() {
   const navigate = useNavigate()
   const { user, updateUser } = useAuth()
   const { answers, setAnswer, resetTest, profile, setProfile } = useMatch()
+  const [questions, setQuestions] = useState(null) // 백엔드가 생성한 문항 세트
   const [index, setIndex] = useState(0)
-  const [phase, setPhase] = useState('question') // question | analyzing | result | error
+  const [phase, setPhase] = useState('loading') // loading | question | analyzing | result
   const [error, setError] = useState('')
   const [checking, setChecking] = useState(false) // 문항별 품질 검사 중
+  // 꼬리 질문: 검증 결과가 애매하면 같은 화면에서 한 번 더 묻는다 (문항당 1개)
+  const [followUp, setFollowUp] = useState(null) // { questionId, question } | null
+  const [followUpAnswer, setFollowUpAnswer] = useState('')
+  const [followUps, setFollowUps] = useState([]) // [{ questionId, question, answer }] → analyze 에 함께 전송
 
-  const q = QUESTIONS[index]
-  const current = answers[q.id] ?? ''
-  const canNext = q.type === 'choice' ? Boolean(current) : current.trim().length > 0
-  const isLast = index === QUESTIONS.length - 1
+  // 문항 세트 생성 (진입 시 · 다시 테스트하기)
+  const fetchQuestions = () =>
+    generateQuestions()
+      .then((qs) => {
+        setQuestions(qs)
+        setPhase('question')
+      })
+      .catch((err) => setError(err.message))
+  const load = () => {
+    setError('')
+    setPhase('loading')
+    return fetchQuestions()
+  }
+  useEffect(() => {
+    fetchQuestions()
+  }, [])
+
+  const q = questions?.[index]
+  const current = q ? (answers[q.id] ?? '') : ''
+  const canNext = followUp
+    ? followUpAnswer.trim().length > 0
+    : q?.type === 'choice'
+      ? Boolean(current)
+      : current.trim().length > 0
+  const isLast = questions ? index === questions.length - 1 : false
 
   // 부족한 문항으로 되돌리기 (문항별 검사를 통과했더라도 최종 분석에서 걸릴 수 있음)
   const goBackTo = (questionIds, message) => {
-    const firstIdx = QUESTIONS.findIndex((x) => questionIds.includes(x.id))
+    const firstIdx = questions.findIndex((x) => questionIds.includes(x.id))
     setIndex(firstIdx >= 0 ? firstIdx : 0)
+    setFollowUp(null)
+    setFollowUpAnswer('')
     setError(message)
     setPhase('question')
   }
 
-  const submit = async () => {
-    const pre = validateAnswers(answers)
+  const submit = async (allFollowUps) => {
+    const pre = validateAnswers(questions, answers)
     if (!pre.ok) {
       goBackTo(pre.insufficient, '이 문항 답변을 조금 더 적어줘야 해')
       return
@@ -48,7 +76,7 @@ function PsychTest() {
     setError('')
     setPhase('analyzing')
     try {
-      const result = await analyzeAnswers(answers)
+      const result = await analyzeAnswers(answers, allFollowUps)
       // 추출 결과가 유효하지 않으면 부족한 문항으로 돌아가 재요청 (플로우차트의 "재요청" 분기)
       if (!result.valid) {
         goBackTo(result.insufficient ?? [], 'AI가 이 답변에서 성향을 충분히 읽지 못했어. 조금 더 구체적으로 적어줄래?')
@@ -65,18 +93,35 @@ function PsychTest() {
     }
   }
 
+  const advance = async (allFollowUps) => {
+    if (isLast) await submit(allFollowUps)
+    else setIndex(index + 1)
+  }
+
   // "다음": 이 문항의 답변 품질을 먼저 검사하고 통과해야 넘어간다
+  // 꼬리 질문이 떠 있으면 그 답변을 모아두고 (재검증 없이) 넘어간다
   const next = async () => {
     setError('')
+    if (followUp) {
+      const nextFollowUps = [...followUps, { ...followUp, answer: followUpAnswer.trim() }]
+      setFollowUps(nextFollowUps)
+      setFollowUp(null)
+      setFollowUpAnswer('')
+      await advance(nextFollowUps)
+      return
+    }
     setChecking(true)
     try {
-      const { ok, reason } = await checkAnswerQuality(q, current)
+      const { ok, reason, followUpQuestion } = await checkAnswerQuality(q, current)
       if (!ok) {
         setError(reason)
         return
       }
-      if (isLast) await submit()
-      else setIndex(index + 1)
+      if (followUpQuestion) {
+        setFollowUp({ questionId: q.id, question: followUpQuestion })
+        return
+      }
+      await advance(followUps)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -86,7 +131,42 @@ function PsychTest() {
 
   const back = () => {
     setError('')
+    if (followUp) {
+      // 꼬리 질문에서 뒤로 → 원래 답변 수정
+      setFollowUp(null)
+      setFollowUpAnswer('')
+      return
+    }
     setIndex(Math.max(0, index - 1))
+  }
+
+  const restart = () => {
+    resetTest()
+    setFollowUps([])
+    setFollowUp(null)
+    setFollowUpAnswer('')
+    setIndex(0)
+    load()
+  }
+
+  if (phase === 'loading') {
+    return (
+      <Layout>
+        <div className={styles.center}>
+          {error ? (
+            <>
+              <Notice tone="error">{error}</Notice>
+              <Button onClick={load}>다시 시도</Button>
+            </>
+          ) : (
+            <>
+              <div className={styles.spinner} />
+              <Heading sub="너한테 맞는 질문 4개를 만드는 중이에요">{'질문을\n준비하고 있어요'}</Heading>
+            </>
+          )}
+        </div>
+      </Layout>
+    )
   }
 
   if (phase === 'analyzing') {
@@ -130,14 +210,7 @@ function PsychTest() {
 
         <div className={styles.spacer} />
         <Button onClick={() => navigate('/home', { replace: true })}>매칭 받으러 가기</Button>
-        <Button
-          variant="ghost"
-          onClick={() => {
-            resetTest()
-            setIndex(0)
-            setPhase('question')
-          }}
-        >
+        <Button variant="ghost" onClick={restart}>
           다시 테스트하기
         </Button>
       </Layout>
@@ -145,33 +218,54 @@ function PsychTest() {
   }
 
   return (
-    <Layout step={index + 1} totalSteps={QUESTIONS.length}>
-      <Heading sub={q.hint}>{q.title}</Heading>
-
-      {q.type === 'open' ? (
-        <Textarea
-          value={current}
-          onChange={(e) => {
-            setAnswer(q.id, e.target.value)
-            if (error) setError('')
-          }}
-          placeholder="여기에 자유롭게 적어줘 (10자 이상)"
-          className={error ? styles.textareaInvalid : ''}
-        />
+    <Layout step={index + 1} totalSteps={questions.length}>
+      {followUp ? (
+        <>
+          <div className={styles.prevAnswer}>
+            <span className={styles.prevLabel}>내 답변</span>
+            {current}
+          </div>
+          <Heading sub="AI가 한 가지만 더 물어볼게. 짧게 답해도 괜찮아">{followUp.question}</Heading>
+          <Textarea
+            value={followUpAnswer}
+            onChange={(e) => {
+              setFollowUpAnswer(e.target.value)
+              if (error) setError('')
+            }}
+            placeholder="여기에 편하게 적어줘"
+            className={styles.followUpArea}
+          />
+        </>
       ) : (
-        <div className={styles.choices}>
-          {q.options.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              className={current === opt.value ? styles.choiceOn : styles.choice}
-              onClick={() => setAnswer(q.id, opt.value)}
-            >
-              <span className={styles.emoji}>{opt.emoji}</span>
-              {opt.label}
-            </button>
-          ))}
-        </div>
+        <>
+          <Heading sub={q.hint}>{q.title}</Heading>
+
+          {q.type === 'open' ? (
+            <Textarea
+              value={current}
+              onChange={(e) => {
+                setAnswer(q.id, e.target.value)
+                if (error) setError('')
+              }}
+              placeholder="여기에 자유롭게 적어줘 (10자 이상)"
+              className={error ? styles.textareaInvalid : ''}
+            />
+          ) : (
+            <div className={styles.choices}>
+              {q.options.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={current === opt.value ? styles.choiceOn : styles.choice}
+                  onClick={() => setAnswer(q.id, opt.value)}
+                >
+                  {opt.emoji && <span className={styles.emoji}>{opt.emoji}</span>}
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {error && <p className={styles.answerError}>⚠️ {error}</p>}
@@ -180,9 +274,9 @@ function PsychTest() {
       <Button onClick={next} disabled={!canNext || checking}>
         {checking ? '답변 확인 중…' : isLast ? '분석 시작하기' : '다음'}
       </Button>
-      {index > 0 && (
+      {(index > 0 || followUp) && (
         <Button variant="ghost" onClick={back}>
-          이전 질문
+          {followUp ? '원래 답변 고치기' : '이전 질문'}
         </Button>
       )}
     </Layout>

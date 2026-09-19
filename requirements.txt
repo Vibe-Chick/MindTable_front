@@ -34,29 +34,46 @@ globals==17.12.0
 # VITE_GOOGLE_CLIENT_ID=          Google Cloud 콘솔 OAuth 클라이언트 ID (mock=false일 때 필요)
 # VITE_VAPID_PUBLIC_KEY=          Web Push VAPID 공개키 (백엔드가 생성해서 공유, mock 모드에선 불필요)
 
-# --- 백엔드 (MindTable_back, Django, http://127.0.0.1:8000 — Vite 프록시로 /api 전달) ---
-# POST  /auth/google/             { credential }  → { access, refresh, user{id,email,name,picture,google_id}, created }   [연동됨]
-# POST  /auth/school/send-code/   { school_email }  → { message }                        [토큰 필요] 인증 메일 발송
-# POST  /auth/school/verify-code/ { school_email, code, school_name, major }  → { school_verification: { school_email, school_name, verified_at } }   [토큰 필요]
-#   ※ 프론트 연결 완료. 백엔드 뷰가 GitHub에 올라오면 VITE_LIVE_APIS=auth/google,auth/school 로 켜기
-# PATCH /users/:id                { ...patch }  → user
-# POST  /profile/check-answer     { questionId, trait, question, answer }  → { ok, reason }
-# POST  /profile/analyze          { answers }  → { bigFive, interests, summary, valid, insufficient[] }
-# POST  /users/:id/profile        profile
-# POST  /match/request            { userId, slots: ['2026-09-21-lunch', ...] | ['now'] }  → { matchId }   (희망 시간대)
-# GET   /match/:id                → { status, result: { ..., mealAt } }   (mealAt: 확정된 식사 시각, 리뷰 창 계산용)
-# GET   /users/:id/matches        → history[]
-# POST  /match/:id/restaurants/preferences/  { location, customLocation, price, avoid }  → { submitted, total, common }
-# GET   /match/:id/restaurants/   ?location&price&avoid  → { source: 'partner'|'map', restaurants[] }   (제휴 없으면 지도 API fallback)
-# GET   /match/:id/vote/          → { votes: {userId: restaurantId}, confirmed: restaurantId|null }
-# POST  /match/:id/vote/          { restaurantId }  → 위와 동일 (과반이면 confirmed)
-# POST  /match/:id/reserve        { restaurantId }
-# GET   /match/:id/review/        → { submitted, result }                          (테이블 리뷰 상태)
-# POST  /match/:id/review/        { answers }  → { deltas, before, after, diversityPref, summary, driftAlert }   (테이블 리뷰 → 프로필 반영)
-# GET   /users/:id/reviews/       → [{ matchId, date, restaurant, deltas, diversityPref, driftAlert }]   (마이페이지 리뷰 기록)
-# --- Web Push (백엔드: pywebpush + VAPID 키 필요) ---
-# POST   /push/subscribe/         PushSubscription.toJSON() = { endpoint, keys: { p256dh, auth } }  → 사용자·기기별 저장
-# DELETE /push/subscribe/         { endpoint }
-# PATCH  /push/preferences/       { enabled, match_done, place_confirmed, review_request }
+# --- 백엔드 (MindTable_back, Django + DRF + SimpleJWT, http://127.0.0.1:8000 — Vite 프록시로 /api 전달) ---
+# 화면별 정리는 Notion "API 명세서"와 동일. 토큰 O = Authorization: Bearer <access> 필요 (src/service/api.js 인터셉터가 자동 첨부)
+#
+# [회원가입]
+# POST  /api/auth/google/              토큰 X   { credential }  → { access, refresh, user{id,email,name,picture,google_id}, created }   [Done]
+# POST  /api/auth/school/send-code/    토큰 O   { school_email }  → { message }                                                       [Done]
+# POST  /api/auth/school/verify-code/  토큰 O   { school_email, code, school_name, major }  → { school_verification: { school_email, school_name, verified_at } }   [Done]
+#
+# [심리 테스트]  (질문은 백엔드가 LLM으로 생성·저장, 답변은 브라우저 state 보관 → 서버 세션/진행 상태 API 없음)
+# POST  /api/psychology/questions/     토큰 O   {}  → { questions: [{ id, type: 'open'|'choice', trait, title, hint, options? }] }   질문 생성 (개방형 3 + 선택형 1)
+# POST  /api/psychology/check-answer/  토큰 O   { questionId, question, answer }  → { needFollowUp, followUpQuestion|null }   답변 검증 + 애매하면 꼬리 질문 생성
+# POST  /api/psychology/analyze/       토큰 O   { answers, followUps: [{ questionId, question, answer }] }  → { bigFive, interests, summary, valid, insufficient[] }   AI 성향 분석 (동기 응답)
+# POST  /api/users/{id}/profile/       토큰 O   profile  → { ok }                                                분석된 프로필 저장
+#
+# [매칭]
+# POST  /api/match/request/            토큰 O   { userId, slots: ['2026-09-21-lunch', ...] | ['now'] }  → { matchId }   (희망 시간대)
+# GET   /api/match/{id}/               토큰 O   → { status, result: { ..., mealAt } }   (mealAt: 확정된 식사 시각, 리뷰 창 계산용)
+#
+# [식당 추천]
+# GET   /api/match/{id}/restaurants/               토큰 O   ?location&price&avoid  → { source: 'partner'|'map', restaurants[] }   (제휴 없으면 지도 API fallback)
+# POST  /api/match/{id}/reserve/                   토큰 O   { restaurantId }
+# POST  /api/match/{id}/restaurants/preferences/   토큰 O   { location, customLocation, price, avoid }  → { submitted, total, common }
+# GET   /api/match/{id}/vote/                      토큰 O   → { votes: {userId: restaurantId}, confirmed: restaurantId|null }
+# POST  /api/match/{id}/vote/                      토큰 O   { restaurantId }  → 위와 동일 (과반이면 confirmed)
+#
+# [마이페이지]
+# PATCH /api/users/{id}/               토큰 O   { ...patch }  → user            내 정보 수정
+# GET   /api/users/{id}/matches/       토큰 O   → history[]                     매칭 기록
+#
+# [테이블 리뷰]
+# GET   /api/match/{id}/review/        토큰 O   → { submitted, result }                                                    리뷰 제출 상태
+# POST  /api/match/{id}/review/        토큰 O   { answers }  → { deltas, before, after, diversityPref, summary, driftAlert }   테이블 리뷰 제출 → 프로필 반영
+# GET   /api/users/{id}/reviews/       토큰 O   → [{ matchId, date, restaurant, deltas, diversityPref, driftAlert }]        내 리뷰 기록
+#
+# [푸시 알림]  (백엔드: pywebpush + VAPID 키 필요)
+# POST   /api/push/subscribe/          토큰 O   PushSubscription.toJSON() = { endpoint, keys: { p256dh, auth } }  → 사용자·기기별 저장
+# DELETE /api/push/subscribe/          토큰 O   { endpoint }
+# PATCH  /api/push/preferences/        토큰 O   { enabled, match_done, place_confirmed, review_request }
 #   발송 시점: 매칭 완료 · 투표로 장소 확정 · 식사 2시간 후 리뷰 요청
 #   payload: { title, body, url, tag? }  → public/sw.js 가 OS 알림으로 표시, 탭하면 url 로 이동
+#
+# ※ {id} 경로는 백엔드에서 토큰의 user와 {id} 일치 여부를 검사할 것
+# ※ 모든 경로는 끝 슬래시(/)로 통일 (Django APPEND_SLASH — POST/PATCH는 슬래시 없으면 실패)
