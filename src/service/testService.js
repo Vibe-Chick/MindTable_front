@@ -1,7 +1,7 @@
 import api, { USE_MOCK } from './api'
 import { sleep, saveJson } from '../utils'
 
-// 개방형 3문항 + 강제선택 1문항 (Big Five 기반 설문)
+// 기본 질문 3개 (Big Five 기반, 개방형). 4번째는 답변이 애매할 때만 AI가 꼬리 질문으로 생성한다.
 // 실서버: 백엔드가 LLM으로 생성해 내려준다 (generateQuestions). 아래 상수는 mock 모드용 예시 세트.
 export const QUESTIONS = [
   {
@@ -25,21 +25,10 @@ export const QUESTIONS = [
     title: '낯선 사람들이랑 대화하다가 어색해지면\n보통 어떻게 풀어가는 편이야?',
     hint: '너만의 대화 스타일이 궁금해',
   },
-  {
-    id: 'q4',
-    type: 'choice',
-    trait: 'calibration',
-    title: '마지막으로, 그룹 안에 있을 때\n나는 어느 쪽에 더 가까워?',
-    hint: '정답 없어, 더 편한 쪽으로 골라줘',
-    options: [
-      { value: 'leader', emoji: '🎤', label: '이끄는 역할이 편해' },
-      { value: 'harmonizer', emoji: '🌿', label: '분위기 맞추는 게 편해' },
-    ],
-  },
 ]
 
 // ---------- 질문 생성 ----------
-// 테스트 시작 시 1회. 백엔드가 LLM으로 개방형 3 + 선택형 1 문항을 만들어 저장하고 내려준다.
+// 테스트 시작 시 1회. 백엔드가 LLM으로 개방형 3문항을 만들어 저장하고 내려준다.
 // 이후 check-answer / analyze 는 여기서 받은 id 로 문항을 참조한다.
 export async function generateQuestions() {
   if (USE_MOCK) {
@@ -62,6 +51,7 @@ export function checkAnswerLocally(question, answer) {
 
 // 문항별 품질 검사 (비어 있으면 바로 반려, 아니면 서버/LLM 판단)
 // 실서버: LLM이 "성향을 읽을 만한 내용이 있는가"를 판단하고, 애매하면 꼬리 질문을 같이 만들어 준다
+// 꼬리 질문은 테스트당 최대 1개 → 화면에서는 4번째 문항으로 보인다 (PsychTest 에서 제한)
 // 반환: { ok, reason?, followUpQuestion? }
 //   ok=false          → reason 을 띄우고 같은 문항 다시 작성
 //   followUpQuestion  → 같은 화면에 꼬리 질문을 띄우고 답을 받은 뒤 다음 문항으로
@@ -102,8 +92,8 @@ export async function analyzeAnswers(answers, followUps = []) {
       bigFive: {
         openness: long ? 4 : 3,
         conscientiousness: 3,
-        extraversion: answers.q4 === 'leader' ? 4 : 2,
-        agreeableness: answers.q4 === 'harmonizer' ? 4 : 3,
+        extraversion: long ? 4 : 2,
+        agreeableness: 3,
         neuroticism: 2,
       },
       interests: ['필름카메라', '클라이밍', '전시 보기'],

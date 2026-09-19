@@ -25,7 +25,7 @@ function Home() {
       {!user.hasProfile && (
         <Card className={styles.warn}>
           <strong>성향 테스트를 아직 안 했어요</strong>
-          <p>매칭을 받으려면 4개 질문에 먼저 답해줘.</p>
+          <p>매칭을 받으려면 3개 질문에 먼저 답해줘.</p>
           <Button variant="secondary" onClick={() => navigate('/test')}>
             테스트 하러 가기
           </Button>

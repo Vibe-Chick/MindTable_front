@@ -30,6 +30,8 @@ function PsychTest() {
   const [followUp, setFollowUp] = useState(null) // { questionId, question } | null
   const [followUpAnswer, setFollowUpAnswer] = useState('')
   const [followUps, setFollowUps] = useState([]) // [{ questionId, question, answer }] → analyze 에 함께 전송
+  // 진행 표시: 기본 질문 3개 + 꼬리 질문이 생기면 4번째로 카운트
+  const extraStep = followUps.length + (followUp ? 1 : 0)
 
   // 문항 세트 생성 (진입 시 · 다시 테스트하기)
   const fetchQuestions = () =>
@@ -117,7 +119,8 @@ function PsychTest() {
         setError(reason)
         return
       }
-      if (followUpQuestion) {
+      // 꼬리 질문은 테스트당 1개까지 (4번째 문항). 이미 받았으면 그냥 넘어간다
+      if (followUpQuestion && followUps.length === 0) {
         setFollowUp({ questionId: q.id, question: followUpQuestion })
         return
       }
@@ -161,7 +164,7 @@ function PsychTest() {
           ) : (
             <>
               <div className={styles.spinner} />
-              <Heading sub="너한테 맞는 질문 4개를 만드는 중이에요">{'질문을\n준비하고 있어요'}</Heading>
+              <Heading sub="너한테 맞는 질문 3개를 만드는 중이에요">{'질문을\n준비하고 있어요'}</Heading>
             </>
           )}
         </div>
@@ -218,7 +221,7 @@ function PsychTest() {
   }
 
   return (
-    <Layout step={index + 1} totalSteps={questions.length}>
+    <Layout step={index + 1 + extraStep} totalSteps={questions.length + extraStep}>
       {followUp ? (
         <>
           <div className={styles.prevAnswer}>
