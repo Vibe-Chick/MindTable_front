@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout/Layout'
 import { Button, Heading, Notice, Textarea } from '../../components/ui/ui'
-import { analyzeAnswers, checkAnswerQuality, generateQuestions, saveProfileVector, validateAnswers } from '../../service/testService'
+import { QUESTION_COUNT, QUESTION_HINT, analyzeAnswers, checkAnswerQuality, generateQuestion, saveProfileVector, validateAnswers } from '../../service/testService'
 import { useAuth } from '../../store/AuthContext'
 import { useMatch } from '../../store/MatchContext'
 import { updateProfile } from '../../service/authService'
@@ -21,7 +21,8 @@ function PsychTest() {
   const navigate = useNavigate()
   const { user, updateUser } = useAuth()
   const { answers, setAnswer, resetTest, profile, setProfile } = useMatch()
-  const [questions, setQuestions] = useState(null) // 백엔드가 생성한 문항 세트
+  // 백엔드가 문항마다 생성해 준 질문. { id: 'q1', type: 'open', title } — id 는 프론트 state 키로만 쓴다
+  const [questions, setQuestions] = useState([])
   const [index, setIndex] = useState(0)
   const [phase, setPhase] = useState('loading') // loading | question | analyzing | result
   const [error, setError] = useState('')
@@ -33,21 +34,25 @@ function PsychTest() {
   // 진행 표시: 기본 질문 3개 + 꼬리 질문이 생기면 4번째로 카운트
   const extraStep = followUps.length + (followUp ? 1 : 0)
 
-  // 문항 세트 생성 (진입 시 · 다시 테스트하기)
-  const fetchQuestions = () =>
-    generateQuestions()
-      .then((qs) => {
-        setQuestions(qs)
+  // i 번째 질문 생성 (없을 때만). 진입 시 · 다음 문항으로 넘어갈 때 · 다시 테스트하기
+  const fetchQuestion = (i) =>
+    generateQuestion(i)
+      .then((title) => {
+        setQuestions((prev) => {
+          const next = [...prev]
+          next[i] = { id: `q${i + 1}`, type: 'open', title }
+          return next
+        })
         setPhase('question')
       })
       .catch((err) => setError(err.message))
   const load = () => {
     setError('')
     setPhase('loading')
-    return fetchQuestions()
+    return fetchQuestion(0)
   }
   useEffect(() => {
-    fetchQuestions()
+    fetchQuestion(0)
   }, [])
 
   const q = questions?.[index]
@@ -57,7 +62,7 @@ function PsychTest() {
     : q?.type === 'choice'
       ? Boolean(current)
       : current.trim().length > 0
-  const isLast = questions ? index === questions.length - 1 : false
+  const isLast = index === QUESTION_COUNT - 1
 
   // 부족한 문항으로 되돌리기 (문항별 검사를 통과했더라도 최종 분석에서 걸릴 수 있음)
   const goBackTo = (questionIds, message) => {
@@ -78,10 +83,13 @@ function PsychTest() {
     setError('')
     setPhase('analyzing')
     try {
-      const result = await analyzeAnswers(answers, allFollowUps)
-      // 추출 결과가 유효하지 않으면 부족한 문항으로 돌아가 재요청 (플로우차트의 "재요청" 분기)
+      // 백엔드는 질문 id 를 모르므로 질문 문자열과 답변을 순서대로 보낸다
+      const payload = questions.map((x) => ({ question: x.title, answer: answers[x.id] }))
+      const result = await analyzeAnswers(payload, allFollowUps.map(({ question, answer }) => ({ question, answer })))
+      // 추출 결과가 유효하지 않으면 부족한 문항으로 돌아가 재요청 (insufficient: 문항 index 또는 id)
       if (!result.valid) {
-        goBackTo(result.insufficient ?? [], 'AI가 이 답변에서 성향을 충분히 읽지 못했어. 조금 더 구체적으로 적어줄래?')
+        const ids = (result.insufficient ?? []).map((v) => (typeof v === 'number' ? `q${v + 1}` : v))
+        goBackTo(ids, 'AI가 이 답변에서 성향을 충분히 읽지 못했어. 조금 더 구체적으로 적어줄래?')
         return
       }
       await saveProfileVector(user.id, result)
@@ -96,8 +104,16 @@ function PsychTest() {
   }
 
   const advance = async (allFollowUps) => {
-    if (isLast) await submit(allFollowUps)
-    else setIndex(index + 1)
+    if (isLast) {
+      await submit(allFollowUps)
+      return
+    }
+    setIndex(index + 1)
+    // 다음 질문이 아직 없으면 생성 (이전 질문으로 돌아갔다 온 경우엔 있음)
+    if (!questions[index + 1]) {
+      setPhase('loading')
+      await fetchQuestion(index + 1)
+    }
   }
 
   // "다음": 이 문항의 답변 품질을 먼저 검사하고 통과해야 넘어간다
@@ -121,7 +137,7 @@ function PsychTest() {
       }
       // 꼬리 질문은 테스트당 1개까지 (4번째 문항). 이미 받았으면 그냥 넘어간다
       if (followUpQuestion && followUps.length === 0) {
-        setFollowUp({ questionId: q.id, question: followUpQuestion })
+        setFollowUp({ question: followUpQuestion })
         return
       }
       await advance(followUps)
@@ -145,6 +161,7 @@ function PsychTest() {
 
   const restart = () => {
     resetTest()
+    setQuestions([])
     setFollowUps([])
     setFollowUp(null)
     setFollowUpAnswer('')
@@ -164,7 +181,7 @@ function PsychTest() {
           ) : (
             <>
               <div className={styles.spinner} />
-              <Heading sub="너한테 맞는 질문 3개를 만드는 중이에요">{'질문을\n준비하고 있어요'}</Heading>
+              <Heading sub={index === 0 ? '너한테 맞는 질문을 만드는 중이에요' : `${index + 1}번째 질문을 만드는 중이에요`}>{'질문을\n준비하고 있어요'}</Heading>
             </>
           )}
         </div>
@@ -221,7 +238,7 @@ function PsychTest() {
   }
 
   return (
-    <Layout step={index + 1 + extraStep} totalSteps={questions.length + extraStep}>
+    <Layout step={index + 1 + extraStep} totalSteps={QUESTION_COUNT + extraStep}>
       {followUp ? (
         <>
           <div className={styles.prevAnswer}>
@@ -241,7 +258,7 @@ function PsychTest() {
         </>
       ) : (
         <>
-          <Heading sub={q.hint}>{q.title}</Heading>
+          <Heading sub={QUESTION_HINT}>{q.title}</Heading>
 
           {q.type === 'open' ? (
             <Textarea
