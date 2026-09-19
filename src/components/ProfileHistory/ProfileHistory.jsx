@@ -167,6 +167,9 @@ function Sparkline({ series, min, max, tone, value, unit }) {
       </defs>
       <polygon fill={`url(#${id})`} points={`4,${H} ${line} ${lastX},${H}`} />
       <polyline fill="none" stroke={color} strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" points={line} />
+      {/* 끝점 하이라이트: 은은한 글로우 + 퍼지는 링 */}
+      <circle cx={lastX} cy={lastY} r="9" fill={color} opacity="0.14" />
+      <circle cx={lastX} cy={lastY} r="5.5" fill={color} opacity="0.28" className={styles.pulse} />
       <circle cx={lastX} cy={lastY} r="3.2" fill={color} stroke="#fff" strokeWidth="1.5" />
       {/* 값 레이블: 끝점 오른쪽, 끝점 높이에 맞춤 (선 색과 동일) */}
       <text x={lastX + 7} y={lastY} dominantBaseline="central" className={styles.labelText} fill={color}>
