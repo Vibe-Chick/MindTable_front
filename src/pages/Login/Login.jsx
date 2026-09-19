@@ -4,7 +4,7 @@ import Layout from '../../components/Layout/Layout'
 import { Heading, Notice } from '../../components/ui/ui'
 import { loginWithGoogle } from '../../service/authService'
 import { useAuth } from '../../store/AuthContext'
-import { FREE_FEATURES, VERIFIED_ONLY_FEATURES, nextRouteFor } from '../../utils'
+import { nextRouteFor } from '../../utils'
 import styles from './Login.module.css'
 
 // 로그인 수단은 Google 계정 하나. 가입 절차 없이 첫 로그인 시 계정이 생성된다.
@@ -40,25 +40,7 @@ function Login() {
         {loading ? 'Google 계정 확인 중…' : 'Google로 계속하기'}
       </button>
 
-      <div className={styles.info}>
-        <div className={styles.infoBlock}>
-          <div className={styles.infoTitle}>로그인만 하면</div>
-          <ul>
-            {FREE_FEATURES.map((f) => (
-              <li key={f}>✓ {f}</li>
-            ))}
-          </ul>
-        </div>
-        <div className={styles.infoBlock}>
-          <div className={styles.infoTitle}>🎓 학교 인증까지 하면</div>
-          <ul>
-            {VERIFIED_ONLY_FEATURES.map((f) => (
-              <li key={f}>✓ {f}</li>
-            ))}
-          </ul>
-          <p className={styles.infoNote}>학교 인증은 로그인 후 언제든 할 수 있어요</p>
-        </div>
-      </div>
+      <p className={styles.note}>학교 인증은 로그인 후에 할 수 있어요</p>
     </Layout>
   )
 }
