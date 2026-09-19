@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import Layout from '../../components/Layout/Layout'
 import { Button, Field, Heading, Input, Notice } from '../../components/ui/ui'
 import { requestSchoolCode, verifySchoolCode } from '../../service/authService'
@@ -14,10 +14,11 @@ function VerifySchool() {
   const [params] = useSearchParams()
   const gated = params.get('reason') === 'gated' // 인증 필요 기능에 접근하다 넘어온 경우
   const { user, updateUser } = useAuth()
-  const [step, setStep] = useState(1)
-  const [univEmail, setUnivEmail] = useState('')
+  const preset = useLocation().state ?? {} // 로그인 직후 자동 발송된 경우 { univEmail, school, sent }
+  const [step, setStep] = useState(preset.sent ? 2 : 1)
+  const [univEmail, setUnivEmail] = useState(preset.univEmail ?? '')
   const [code, setCode] = useState('')
-  const [school, setSchool] = useState('')
+  const [school, setSchool] = useState(preset.school ?? '')
   const [major, setMajor] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -83,6 +84,7 @@ function VerifySchool() {
 
       {step === 2 && (
         <>
+          {preset.sent && !error && <Notice tone="success">학교 계정으로 로그인해서 인증 코드를 바로 보냈어요</Notice>}
           <Heading sub={`${univEmail}로 보낸 6자리 코드를 입력해줘`}>인증 코드 확인</Heading>
           <Notice>테스트 모드에서는 코드가 항상 123456이에요</Notice>
           <Field label="인증 코드">

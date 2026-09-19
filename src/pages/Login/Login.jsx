@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout/Layout'
 import { Heading, Notice } from '../../components/ui/ui'
-import { GOOGLE_LIVE, exchangeGoogleCredential, loginWithGoogle, renderGoogleButton } from '../../service/authService'
+import { GOOGLE_LIVE, exchangeGoogleCredential, loginWithGoogle, renderGoogleButton, requestSchoolCode } from '../../service/authService'
 import { useAuth } from '../../store/AuthContext'
-import { nextRouteFor } from '../../utils'
+import { isUniversityEmail, nextRouteFor } from '../../utils'
 import styles from './Login.module.css'
 
 // 로그인 수단은 Google 계정 하나. 가입 절차 없이 첫 로그인 시 계정이 생성된다.
@@ -17,9 +17,20 @@ function Login() {
   const [loading, setLoading] = useState(false)
   const googleBtn = useRef(null)
 
-  const finish = (data) => {
+  // 로그인 직후: Google 계정이 대학 메일이고 아직 미인증이면 그 주소로 인증 코드를 바로 보내고 코드 입력 화면으로
+  const finish = async (data) => {
     login(data)
-    navigate(nextRouteFor(data.user), { replace: true })
+    const u = data.user
+    if (!u.schoolVerified && isUniversityEmail(u.email)) {
+      try {
+        const { school } = await requestSchoolCode(u.id, u.email)
+        navigate('/verify-school', { replace: true, state: { univEmail: u.email, school, sent: true } })
+        return
+      } catch {
+        /* 발송 실패해도 로그인은 유지 — 학교 인증 화면에서 다시 시도 */
+      }
+    }
+    navigate(nextRouteFor(u), { replace: true })
   }
 
   // 실서버 모드: Google 버튼 렌더링
